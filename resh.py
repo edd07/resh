@@ -22,11 +22,11 @@ import cmd
 import getpass
 import reddit
 from urllib.error import URLError
-from pages import *
+from listings import *
 
 class resh(cmd.Cmd):
     history=[]
-    page=None
+    listing=None
     redditor=None
     
     def __init__(self):
@@ -40,16 +40,16 @@ class resh(cmd.Cmd):
         self.do_fp = self.do_frontpage
         self.do_u = self.do_user
         
-    def load_page(self,page):
-        self.history.append(self.page)
-        self.page=page
-        self.prompt=self.page.prompt
-        print(self.page)
+    def load_Listing(self,listing):
+        self.history.append(self.listing)
+        self.listing=listing
+        self.prompt=self.listing.prompt
+        print(self.listing)
         
     def back(self):
         if(history):
-            self.page=history.pop()
-            self.prompt=self.page.prompt
+            self.listing=history.pop()
+            self.prompt=self.listing.prompt
             
     def do_back(self,list):
         """back: back [pages]
@@ -60,50 +60,50 @@ class resh(cmd.Cmd):
             pages=int(list)
             for i in range(pages):
                 back()
-            print(self.page)
+            print(self.listing)
         except ValueError:
             print("Invalid argument ",line)
             
     def do_next(self,list):
         """next: next
-    Displays the next 25 items in the current page"""
+    Displays the next 25 items in the current listing"""
         try:
-            self.page.next_page()
-            print(self.page)
+            self.listing.next_Listing()
+            print(self.listing)
         except StopIteration:
             print("There doesn't seem to be anything here")
             
     def do_prev(self,list):
         """prev: prev
-    Displays the previous 25 items in the current page"""
+    Displays the previous 25 items in the current listing"""
         try:
-            self.page.prev_page()
-            print(self.page)
+            self.listing.prev_Listing()
+            print(self.listing)
         except IndexError:
-            print("This are the first posts in this page")
+            print("This are the first posts in this listing")
         
     def do_exit(self,line):
         """Exits resh"""
         return True
 
     def emptyline(self):
-        print(self.page)
+        print(self.listing)
     
     def do_search(self,line):
         #TODO: add syntax to search for subreddit names
         #TODO: if line isn't specified, ask for search terms
-        if(isinstance(self.page,Subreddit_Page)):
+        if(isinstance(self.listing,Subreddit_Listing)):
             #We're in a subreddit, so search inside it
-            results=self.page.subreddit.search(line)
+            results=self.listing.subreddit.search(line)
             if(results):
-                self.load_page(Subreddit_Search_Page(line,self.page.subreddit,results))
+                self.load_Listing(Subreddit_Search_Listing(line,self.listing.subreddit,results))
             else:
                 print("No posts match your search ",line)
         else:
             #search across the entire site
             results=self.reddit.search(line)
             if(results):
-                self.load_page(Search_Page(line,results))
+                self.load_Listing(Search_Listing(line,results))
             else:
                 print("No posts match your search ",line)            
             
@@ -113,12 +113,12 @@ class resh(cmd.Cmd):
     Goes to a subreddit. If subreddit isn't specified, the command 
     lists the user's suscribed subreddits."""
         if(line):
-            self.load_page(Subreddit_Page(self.reddit.get_subreddit(line)))
+            self.load_Listing(Subreddit_Listing(self.reddit.get_subreddit(line)))
             
         else:
             if(self.redditor is not None):
                 #get subreddits
-                self.load_page(My_Subreddits_Page(self.redditor.my_reddits()))
+                self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits()))
             else:
                 print("You must login to view your subscribed subreddits")
     
