@@ -47,9 +47,12 @@ class resh(cmd.Cmd):
         print(self.listing)
         
     def back(self):
-        if(history):
-            self.listing=history.pop()
-            self.prompt=self.listing.prompt
+        if(self.history):
+            self.listing=self.history.pop()
+            if(self.listing):
+                self.prompt=self.listing.prompt
+            else:
+                self.prompt="resh>"
             
     def do_back(self,list):
         """back: back [pages]
@@ -59,28 +62,27 @@ class resh(cmd.Cmd):
             if(list==''): list='1'
             pages=int(list)
             for i in range(pages):
-                back()
-            print(self.listing)
+                self.back()
+            if(self.listing): print(self.listing)
         except ValueError:
             print("Invalid argument ",line)
             
     def do_next(self,list):
         """next: next
     Displays the next 25 items in the current listing"""
-        try:
-            self.listing.next_Listing()
-            print(self.listing)
-        except StopIteration:
-            print("There doesn't seem to be anything here")
+
+        self.listing.next_Page()
+        print(self.listing)
+            
             
     def do_prev(self,list):
         """prev: prev
     Displays the previous 25 items in the current listing"""
         try:
-            self.listing.prev_Listing()
+            self.listing.prev_Page()
             print(self.listing)
         except IndexError:
-            print("This are the first posts in this listing")
+            print("These are the first posts in this listing")
         
     def do_exit(self,line):
         """Exits resh"""
@@ -94,14 +96,14 @@ class resh(cmd.Cmd):
         #TODO: if line isn't specified, ask for search terms
         if(isinstance(self.listing,Subreddit_Listing)):
             #We're in a subreddit, so search inside it
-            results=self.listing.subreddit.search(line)
+            results=self.listing.subreddit.search(line,limit=None)
             if(results):
                 self.load_Listing(Subreddit_Search_Listing(line,self.listing.subreddit,results))
             else:
                 print("No posts match your search ",line)
         else:
             #search across the entire site
-            results=self.reddit.search(line)
+            results=self.reddit.search(line,limit=None)
             if(results):
                 self.load_Listing(Search_Listing(line,results))
             else:
@@ -118,7 +120,7 @@ class resh(cmd.Cmd):
         else:
             if(self.redditor is not None):
                 #get subreddits
-                self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits()))
+                self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits(limit=None)))
             else:
                 print("You must login to view your subscribed subreddits")
     

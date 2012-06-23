@@ -28,20 +28,24 @@ class Listing():
         self.prev=[] #pages that come before the current one
         self.next=[] #pages that come after the current one
         self.items=None
-        self.items=self.next_Page()
+        self.next_Page()
         
     def next_Page(self):
         """Retrieves the next page of items either from reddit, or the local copies
         if they've already been visited"""
-        self.prev.append(self.items)  
+        if(self.items):
+            self.prev.append(self.items)  
         if(self.next):
             #local copies
             self.items=self.next.pop()
         else:
             #retrieve new stories
             self.items=[]
-            for i in range(25):
-                self.items.append(self.generator.next())
+            try:
+                for i in range(25):
+                    self.items.append(next(self.generator))
+            except StopIteration:
+                pass
         
     
     def prev_Page(self):
@@ -55,8 +59,10 @@ class Listing():
         
     def format_count(self,count):
         """Abbreviates a number to 4 characters"""
-        if(count>999999):
-            return str("{:>3}".format(count/1000000))+"M"
+        if(count>9999999):
+            return str(count//1000000)+"M"
+        elif(count>999999):
+            return ("%.1f" % (count/1000000) )+"M"
         elif(count>1000):
             return str(count//1000)+"K"
         else:
@@ -65,10 +71,14 @@ class Listing():
     
     def __str__(self):
         out=[]
-        out.append("{:<72} Listing {:>2}".format(
+        out.append("{:<72} page {:>2}".format(
                                                  self.title,
-                                                 len(self.prev)+1
-                                                 ))
+                                                 len(self.prev)
+                                                 )) 
+        if(not self.items):
+            out.append("There doesn't seem to be anything here")
+        out.append("To enter an item, type go <number>")
+        
         for i in self.items:
             try:
                 out.append(getattr(self,"str_"+i.__class__.__name__)(self.items.index(i)+1,i))
@@ -112,14 +122,14 @@ class Subreddit_Search_Listing(Search_Listing):
                          terms,
                          generator
                         )
-        self.title="Subreddit search results for: '"+terms+"' in "+sub.display_name
+        self.title="Subreddit search results for: '"+terms+"' in /r/"+sub.display_name
         
 class Subreddit_Listing(Listing):
     def __init__(self, sub, sort='hot'):
         self.subreddit=sub
         generator = getattr(self.subreddit, 'get_'+sort)(limit=None)
         super().__init__(
-                         "\033[1m{:<31}\033[0m /r/{:>28}".format(sub.title,sub.display_name),
+                         "\033[1m{:<31}\033[0m {:>31}".format(sub.title,"/r/"+sub.display_name),
                          "/r/"+sub.display_name+">",
                          generator
                                             )
