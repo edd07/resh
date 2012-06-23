@@ -63,6 +63,24 @@ class resh(cmd.Cmd):
             print(self.page)
         except ValueError:
             print("Invalid argument ",line)
+            
+    def do_next(self,list):
+        """next: next
+    Displays the next 25 items in the current page"""
+        try:
+            self.page.next_page()
+            print(self.page)
+        except StopIteration:
+            print("There doesn't seem to be anything here")
+            
+    def do_prev(self,list):
+        """prev: prev
+    Displays the previous 25 items in the current page"""
+        try:
+            self.page.prev_page()
+            print(self.page)
+        except IndexError:
+            print("This are the first posts in this page")
         
     def do_exit(self,line):
         """Exits resh"""
@@ -125,6 +143,8 @@ class resh(cmd.Cmd):
     def do_user(self,line):
         """user: user username
     Looks up the username and displays his or her overview"""
+        pass
+    
         
         
 
