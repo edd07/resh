@@ -35,6 +35,7 @@ class resh(cmd.Cmd):
         self.reddit = reddit.Reddit(user_agent="resh")
         
         #shorthand
+        self.do_EOF=self.do_exit
         self.do_sub=self.do_subreddit
         self.do_fp = self.do_frontpage
         self.do_u = self.do_user
@@ -49,17 +50,18 @@ class resh(cmd.Cmd):
         if(history):
             self.page=history.pop()
             self.prompt=self.page.prompt
-            print(self.page)
             
     def do_back(self,list):
         """back: back [pages]
     Goes back the specified number of pages in the browsing history.
     If pages is left blank, it defaults to 1"""
         try:
+            if(list==''): list='1'
             pages=int(list)
             for i in range(pages):
                 back()
-        except TypeError:
+            print(self.page)
+        except ValueError:
             print("Invalid argument ",line)
         
     def do_exit(self,line):
@@ -67,10 +69,11 @@ class resh(cmd.Cmd):
         return True
 
     def emptyline(self):
-        pass
+        print(self.page)
     
     def do_search(self,line):
-        #TODO: add command syntax to search for subreddit names
+        #TODO: add syntax to search for subreddit names
+        #TODO: if line isn't specified, ask for search terms
         if(isinstance(self.page,Subreddit_Page)):
             #We're in a subreddit, so search inside it
             results=self.page.subreddit.search(line)
@@ -79,7 +82,7 @@ class resh(cmd.Cmd):
             else:
                 print("No posts match your search ",line)
         else:
-            #search across the site
+            #search across the entire site
             results=self.reddit.search(line)
             if(results):
                 self.load_page(Search_Page(line,results))
@@ -97,7 +100,7 @@ class resh(cmd.Cmd):
         else:
             if(self.redditor is not None):
                 #get subreddits
-                pass
+                self.load_page(My_Subreddits_Page(self.redditor.my_reddits()))
             else:
                 print("You must login to view your subscribed subreddits")
     

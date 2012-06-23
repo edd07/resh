@@ -24,14 +24,46 @@ class Page():
     def __init__(self, title, prompt, items):
         self.title=title
         self.prompt=prompt
-        self.items=items
+        self.items=list(items)
+        
+    def format_count(self,count):
+        if(count>999999):
+            return str(count//1000000)+"M"
+        elif(count>1000):
+            return str(count//1000)+"K"
+        else:
+            return count
+        
     
     def __str__(self):
-        print(self.title)
+        out=[]
+        out.append(self.title)
         for i in self.items:
-            print(str(i))
+            try:
+                out.append(getattr(self,"str_"+i.__class__.__name__)(self.items.index(i)+1,i))
+            except AttributeError:
+                out.append("Object of type "+i.__class__.__name__)
+        return "\n".join(out)
+    
+    def str_Submission(self, number, submission):
+        return "Submission OK"
+    
+    def str_Subreddit(self,number,subreddit):
+        return "{:<3} {:<71} {:>4} readers".format(
+                                                   number,
+                                                   "\033[1m"+subreddit.display_name+"\033[0m",
+                                                   self.format_count(subreddit.subscribers)
+                                                  )
         
-class Search_Page():
+class My_Subreddits_Page(Page):
+    def __init__(self,items):
+        super().__init__(
+                         "Your suscribed Subreddits:",
+                         "subreddits>",
+                         items
+                         )
+        
+class Search_Page(Page):
     def __init__(self,terms,items):
         super().__init__(
                          "Search results for: "+terms,
@@ -49,9 +81,9 @@ class Subreddit_Search_Page(Search_Page):
         self.title="Subreddit search results for: '"+terms+"' in "+sub.display_name
         
 class Subreddit_Page(Page):
-    def __init__(self, sub, sort='hot'):
+    def __init__(self, sub, sort='hot', page=1):
         self.subreddit=sub
-        items = getattr(self.subreddit, 'get_'+sort)()
+        items = getattr(self.subreddit, 'get_'+sort)(limit=25)
         super().__init__(
                          sub.display_name,
                          sub.display_name+">",
