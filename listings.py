@@ -24,6 +24,7 @@ import sys
 class Listing():
     BOLD="\033[1m"
     RESET="\033[0m"
+    NEWLINE="\n"
     
     def __init__(self, title, prompt, generator):
         self.title=title
@@ -37,7 +38,7 @@ class Listing():
         if sys.platform == 'win32':
             Listing.BOLD=""
             Listing.RESET=""
-        
+            Listing.NEWLINE="\r\n"                
         
     def next_Page(self):
         """Retrieves the next page of items either from reddit, or the local copies
@@ -78,15 +79,28 @@ class Listing():
         
         for i in self.items:
             try:
-                out.append(getattr(self,"str_"+i.__class__.__name__)(self.items.index(i)+1,i))
+                out.append("{:>2} ".format(self.items.index(i)+1)+getattr(self,"str_"+i.__class__.__name__)(i))
             except AttributeError:
-                out.append("Can't handle a(n) "+i.__class__.__name__)
-        return "\n".join(out)
+                out.append("{:>2} ".format(self.items.index(i)+1)+"Can't handle a(n) "+i.__class__.__name__)
+        return Listing.NEWLINE.join(out)
     
-    def str_Submission(self, number, submission):
-        return "Submission OK"
+    def str_Submission(self,submission):
+        title=submission.title
+        out=["{}{:>4} {:<40}{}    /r/{:<25}".format(
+                                                    Listing.BOLD,
+                                                    submission.score,
+                                                    title[:40],
+                                                    Listing.RESET,
+                                                    submission.subreddit.display_name
+                                                    )]
+        title=title[40:]
+        while title: #split the title in several lines if necessary
+            out.append("        "+title[:40])
+            title=title[40:]
+        return Listing.NEWLINE.join(out)
+        
     
-    def str_Comment(self,number,comment):
+    def str_Comment(self,comment):
         #TODO: Wrap comments and indent depending on level
         return "Comment OK"
         
@@ -109,9 +123,8 @@ class My_Subreddits_Listing(Listing):
         else:
             return count
     
-    def str_Subreddit(self,number,subreddit):
-        return "{:<3} {}{:<63}{} {:>4} readers".format(
-                                                   number,
+    def str_Subreddit(self,subreddit):
+        return "{}{:<63}{} {:>4} readers".format(
                                                    Listing.BOLD,
                                                    subreddit.display_name,
                                                    Listing.RESET,
@@ -148,6 +161,11 @@ class Subreddit_Listing(Listing):
                          "/r/"+sub.display_name+">",
                          generator
                                             )
+        
+class Frontpage_Listing(Listing):
+    """Listing for the reddit.com front page"""
+    def __init__(self,generator):
+        super().__init__("Front Page","frontpage>",generator)
 
 
         

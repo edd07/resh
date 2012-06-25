@@ -26,18 +26,18 @@ from listings import *
 import sys
 
 class resh(cmd.Cmd):
-    history=[]
-    listing=None
-    redditor=None
     
     def __init__(self):
         super(resh,self).__init__()
         self.prompt="resh>"
         self.reddit = reddit.Reddit(user_agent="resh (github.com/edd07/resh)")
+        self.history=[]
+        self.listing=None
+        self.redditor=None
         
         #undocumented shorthand commands
         self.do_EOF=self.do_exit
-        self.do_sub=self.do_subreddit
+        self.do_r=self.do_subreddit
         self.do_fp = self.do_frontpage
         self.do_u = self.do_user
         
@@ -56,7 +56,7 @@ class resh(cmd.Cmd):
                 self.prompt="resh>"
             
     def do_back(self,list):
-        """back: back [pages]
+        """usage: back [pages]
     Goes back the specified number of pages in the browsing history.
     If pages is left blank, it defaults to 1"""
         try:
@@ -64,12 +64,12 @@ class resh(cmd.Cmd):
             pages=int(list)
             for i in range(pages):
                 self.back()
-            if(self.listing): print(self.listing)
+            if self.listing: print(self.listing)
         except ValueError:
             print("Invalid argument ",line)
             
     def do_next(self,list):
-        """next: next
+        """usage: next
     Displays the next 25 items in the current listing"""
 
         self.listing.next_Page()
@@ -77,7 +77,7 @@ class resh(cmd.Cmd):
             
             
     def do_prev(self,list):
-        """prev: prev
+        """usage: prev
     Displays the previous 25 items in the current listing"""
         try:
             self.listing.prev_Page()
@@ -94,7 +94,9 @@ class resh(cmd.Cmd):
     
     def do_search(self,line):
         #TODO: add syntax to search for subreddit names
-        #TODO: if line isn't specified, ask for search terms
+        
+        if not line:
+            line=input("Search for: ")
         if isinstance(self.listing,Subreddit_Listing):
             #We're in a subreddit, so search inside it
             results=self.listing.subreddit.search(line,limit=None)
@@ -112,7 +114,7 @@ class resh(cmd.Cmd):
             
     
     def do_subreddit(self,line):
-        """subreddit: subreddit [subreddit]
+        """usage: subreddit [subreddit]
     Goes to a subreddit. If subreddit isn't specified, the command 
     lists the user's suscribed subreddits."""
         if line:
@@ -123,14 +125,16 @@ class resh(cmd.Cmd):
                 #get subreddits
                 self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits(limit=None)))
             else:
-                print("You must login to view your subscribed subreddits")
+                print("You must log in to view your subscribed subreddits. To log in, type login [user]")
     
     def do_frontpage(self,line):
-        """Lists the posts on the user's frontpage"""
-        pass
+        """usage: frontpage
+    Lists the posts on the user's frontpage if he or she is logged in, 
+    and the default front page otherwise"""
+        self.load_Listing(Frontpage_Listing(self.reddit.get_front_page(limit=None)))
     
     def do_login(self,line):
-        """login: login [user]
+        """usage: login [user]
     Logs the user in."""
         try:
             if not line:
@@ -144,7 +148,7 @@ class resh(cmd.Cmd):
             print("Network error, unable to login")
         
     def do_user(self,line):
-        """user: user username
+        """usage: user username
     Looks up the username and displays his or her overview"""
         pass
     
