@@ -56,7 +56,39 @@ class Listing():
         else:
             raise IndexError
     
+    def __str__(self):
+        out=[]
+        out.append("{:<72} page {:>2}".format(
+                                                 self.title,
+                                                 len(self.prev)+1
+                                                 ))
+        if(self.items):
+            out.append("To enter an item, type go <number>")
+        else:
+            out.append("There doesn't seem to be anything here")
         
+        for i in self.items:
+            try:
+                out.append(getattr(self,"str_"+i.__class__.__name__)(self.items.index(i)+1,i))
+            except AttributeError:
+                out.append("Can't handle a(n) "+i.__class__.__name__)
+        return "\n".join(out)
+    
+    def str_Submission(self, number, submission):
+        return "Submission OK"
+    
+    def str_Comment(self,number,comment):
+        #TODO: Wrap comments and indent depending on level
+        return "Comment OK"
+        
+class My_Subreddits_Listing(Listing):
+    """Listing of the user's subscribed subreddits"""
+    def __init__(self,generator):
+        super().__init__(
+                         "Your suscribed Subreddits:",
+                         "subreddits>",
+                         generator
+                         )
     def format_count(self,count):
         """Abbreviates a number to 4 characters"""
         if(count>9999999):
@@ -67,27 +99,6 @@ class Listing():
             return str(count//1000)+"K"
         else:
             return count
-        
-    
-    def __str__(self):
-        out=[]
-        out.append("{:<72} page {:>2}".format(
-                                                 self.title,
-                                                 len(self.prev)
-                                                 )) 
-        if(not self.items):
-            out.append("There doesn't seem to be anything here")
-        out.append("To enter an item, type go <number>")
-        
-        for i in self.items:
-            try:
-                out.append(getattr(self,"str_"+i.__class__.__name__)(self.items.index(i)+1,i))
-            except AttributeError:
-                out.append("Object of type "+i.__class__.__name__)
-        return "\n".join(out)
-    
-    def str_Submission(self, number, submission):
-        return "Submission OK"
     
     def str_Subreddit(self,number,subreddit):
         return "{:<3} \033[1m{:<63}\033[0m {:>4} readers".format(
@@ -95,20 +106,11 @@ class Listing():
                                                    subreddit.display_name,
                                                    self.format_count(subreddit.subscribers)
                                                   )
-    def str_Comment(self,number,comment):
-        #TODO: Wrap comments and indent depending on level
-        return "Comment OK"
-        
-class My_Subreddits_Listing(Listing):
-    def __init__(self,generator):
-        super().__init__(
-                         "Your suscribed Subreddits:",
-                         "subreddits>",
-                         generator
-                         )
         
 class Search_Listing(Listing):
+    """Listing of posts matching a search term"""
     def __init__(self,terms,generator):
+        self.terms=terms
         super().__init__(
                          "Search results for: "+terms,
                          "search results>",
@@ -116,6 +118,7 @@ class Search_Listing(Listing):
                          )
         
 class Subreddit_Search_Listing(Search_Listing):
+    """Listing of posts matching a search term inside a subreddit"""
     def __init__(self, terms, sub, generator):
         self.subreddit=sub
         super().__init__(
@@ -125,11 +128,12 @@ class Subreddit_Search_Listing(Search_Listing):
         self.title="Subreddit search results for: '"+terms+"' in /r/"+sub.display_name
         
 class Subreddit_Listing(Listing):
+    """Listing of a subreddit's front page"""
     def __init__(self, sub, sort='hot'):
         self.subreddit=sub
         generator = getattr(self.subreddit, 'get_'+sort)(limit=None)
         super().__init__(
-                         "\033[1m{:<31}\033[0m {:>31}".format(sub.title,"/r/"+sub.display_name),
+                         "\033[1m{:<46}\033[0m {:>25}".format(sub.title,"/r/"+sub.display_name),
                          "/r/"+sub.display_name+">",
                          generator
                                             )

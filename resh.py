@@ -34,7 +34,7 @@ class resh(cmd.Cmd):
         self.prompt="resh>"
         self.reddit = reddit.Reddit(user_agent="resh")
         
-        #shorthand
+        #shorthand commands
         self.do_EOF=self.do_exit
         self.do_sub=self.do_subreddit
         self.do_fp = self.do_frontpage
