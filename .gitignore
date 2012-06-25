@@ -4,6 +4,7 @@
 .pydevproject
 *.pyc
 .settings
+.metadata
 
 # Compiled source #
 ###################
