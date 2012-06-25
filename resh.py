@@ -23,6 +23,7 @@ import getpass
 import reddit
 from urllib.error import URLError
 from listings import *
+import sys
 
 class resh(cmd.Cmd):
     history=[]
@@ -32,9 +33,9 @@ class resh(cmd.Cmd):
     def __init__(self):
         super(resh,self).__init__()
         self.prompt="resh>"
-        self.reddit = reddit.Reddit(user_agent="resh")
+        self.reddit = reddit.Reddit(user_agent="resh (github.com/edd07/resh)")
         
-        #shorthand commands
+        #undocumented shorthand commands
         self.do_EOF=self.do_exit
         self.do_sub=self.do_subreddit
         self.do_fp = self.do_frontpage
@@ -47,9 +48,9 @@ class resh(cmd.Cmd):
         print(self.listing)
         
     def back(self):
-        if(self.history):
+        if self.history:
             self.listing=self.history.pop()
-            if(self.listing):
+            if self.listing:
                 self.prompt=self.listing.prompt
             else:
                 self.prompt="resh>"
@@ -59,7 +60,7 @@ class resh(cmd.Cmd):
     Goes back the specified number of pages in the browsing history.
     If pages is left blank, it defaults to 1"""
         try:
-            if(list==''): list='1'
+            if list=='': list='1'
             pages=int(list)
             for i in range(pages):
                 self.back()
@@ -94,17 +95,17 @@ class resh(cmd.Cmd):
     def do_search(self,line):
         #TODO: add syntax to search for subreddit names
         #TODO: if line isn't specified, ask for search terms
-        if(isinstance(self.listing,Subreddit_Listing)):
+        if isinstance(self.listing,Subreddit_Listing):
             #We're in a subreddit, so search inside it
             results=self.listing.subreddit.search(line,limit=None)
-            if(results):
+            if results:
                 self.load_Listing(Subreddit_Search_Listing(line,self.listing.subreddit,results))
             else:
                 print("No posts match your search ",line)
         else:
             #search across the entire site
             results=self.reddit.search(line,limit=None)
-            if(results):
+            if results:
                 self.load_Listing(Search_Listing(line,results))
             else:
                 print("No posts match your search ",line)            
@@ -114,11 +115,11 @@ class resh(cmd.Cmd):
         """subreddit: subreddit [subreddit]
     Goes to a subreddit. If subreddit isn't specified, the command 
     lists the user's suscribed subreddits."""
-        if(line):
+        if line:
             self.load_Listing(Subreddit_Listing(self.reddit.get_subreddit(line)))
             
         else:
-            if(self.redditor is not None):
+            if self.redditor is not None:
                 #get subreddits
                 self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits(limit=None)))
             else:
@@ -157,5 +158,5 @@ if __name__ == "__main__":
     
     Type a subreddit's name or 'frontpage' to show posts
     For a list of commands, type 'help'
-    To exit type 'exit' (duh!) or press CTRL-D
-    """)
+    To exit type 'exit' (duh!) or press {}
+    """.format("CTRL-Z then Enter" if sys.platform=='win32' else "CTRL-D"  ))
