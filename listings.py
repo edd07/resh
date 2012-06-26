@@ -24,6 +24,7 @@ import sys
 class Listing():
     BOLD="\033[1m"
     RESET="\033[0m"
+    SEPARATOR="--------------------------------------------------------------------------------\n"
     NEWLINE="\n"
     
     def __init__(self, title, prompt, generator):
@@ -34,11 +35,22 @@ class Listing():
         self.next=[] #pages that come after the current one
         self.items=None
         self.next_Page()
-        #turn off ANSI escape codes for the sucky windows console
+        #Fix formatting for the sucky windows console
         if sys.platform == 'win32':
             Listing.BOLD=""
             Listing.RESET=""
-            Listing.NEWLINE="\r\n"                
+            Listing.SEPARATOR="--------------------------------------------------------------------------------"
+            Listing.NEWLINE=""
+
+    def __wrap(self,string,width,margin):
+        """Splits a string across several lines, each 80 columns wide"""
+        #TODO: Make it word-wrap
+        out=[]
+        while string:
+            out.append( (margin+"{:<"+str(80-len(margin))"}").format(string[:width]))
+            string=string[width:]
+        return Listing.NEWLINE.join(out)
+
         
     def next_Page(self):
         """Retrieves the next page of items either from reddit, or the local copies
@@ -68,35 +80,37 @@ class Listing():
     
     def __str__(self):
         out=[]
-        out.append("{:<72} page {:>2}".format(
+        out.append("{}{:<72}{} page {:>2}".format(
+                                                 Listing.BOLD,
                                                  self.title,
+                                                 Listing.RESET,
                                                  len(self.prev)+1
                                                  ))
-        if self.items:
-            out.append("To enter an item, type go <number>")
-        else:
-            out.append("There doesn't seem to be anything here")
         
         for i in self.items:
             try:
                 out.append("{:>2} ".format(self.items.index(i)+1)+getattr(self,"str_"+i.__class__.__name__)(i))
             except AttributeError:
                 out.append("{:>2} ".format(self.items.index(i)+1)+"Can't handle a(n) "+i.__class__.__name__)
-        return Listing.NEWLINE.join(out)
+
+        if self.items:
+            out.append("{:<80}".format("To enter an item, type go <number>"))
+        else:
+            out.append("{:<80}".format("There doesn't seem to be anything here"))
+
+        return Listing.SEPARATOR.join(out)
     
     def str_Submission(self,submission):
         title=submission.title
-        out=["{}{:>4} {:<40}{}    /r/{:<25}".format(
+        out=["{}{:>4} {:<46}{} {:>25}".format(
                                                     Listing.BOLD,
                                                     submission.score,
-                                                    title[:40],
+                                                    title[:46],
                                                     Listing.RESET,
-                                                    submission.subreddit.display_name
+                                                    "/r/"+submission.subreddit.display_name
                                                     )]
-        title=title[40:]
-        while title: #split the title in several lines if necessary
-            out.append("        "+title[:40])
-            title=title[40:]
+
+        out.append( self.__wrap(title[46:],46,"        " ))
         return Listing.NEWLINE.join(out)
         
     
@@ -124,12 +138,16 @@ class My_Subreddits_Listing(Listing):
             return count
     
     def str_Subreddit(self,subreddit):
-        return "{}{:<63}{} {:>4} readers".format(
+        title=subreddit.title
+        out=[ "{}{:<38}{} {:>25} {:>4} readers".format(
                                                    Listing.BOLD,
-                                                   subreddit.display_name,
+                                                   title[:38],
                                                    Listing.RESET,
+                                                   "/r/"+subreddit.display_name,
                                                    self.format_count(subreddit.subscribers)
-                                                  )
+                                                  )]
+        out.append( self.__wrap(title[38:],38,"   " ))
+        return Listing.NEWLINE.join(out)
         
 class Search_Listing(Listing):
     """Listing of posts matching a search term"""
