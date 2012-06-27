@@ -42,12 +42,17 @@ class Listing():
             Listing.SEPARATOR="--------------------------------------------------------------------------------"
             Listing.NEWLINE=""
 
-    def __wrap(self,string,width,margin):
+    def _asciify(self,s):
+        """Strip non-ascii chars from the string  because windows is dumb"""
+        return "".join(i for i in s if ord(i)<128)
+
+
+    def _wrap(self,string,width,margin):
         """Splits a string across several lines, each 80 columns wide"""
         #TODO: Make it word-wrap
         out=[]
         while string:
-            out.append( (margin+"{:<"+str(80-len(margin))"}").format(string[:width]))
+            out.append( (margin+"{:<"+str(80-len(margin))+"}").format(string[:width]))
             string=string[width:]
         return Listing.NEWLINE.join(out)
 
@@ -101,7 +106,11 @@ class Listing():
         return Listing.SEPARATOR.join(out)
     
     def str_Submission(self,submission):
-        title=submission.title
+        if sys.platform=='win32': 
+            title=self._asciify(submission.title) 
+        else: 
+            title=submission.title
+
         out=["{}{:>4} {:<46}{} {:>25}".format(
                                                     Listing.BOLD,
                                                     submission.score,
@@ -110,7 +119,7 @@ class Listing():
                                                     "/r/"+submission.subreddit.display_name
                                                     )]
 
-        out.append( self.__wrap(title[46:],46,"        " ))
+        out.append( self._wrap(title[46:],46,"        " ))
         return Listing.NEWLINE.join(out)
         
     
@@ -146,7 +155,7 @@ class My_Subreddits_Listing(Listing):
                                                    "/r/"+subreddit.display_name,
                                                    self.format_count(subreddit.subscribers)
                                                   )]
-        out.append( self.__wrap(title[38:],38,"   " ))
+        out.append( self._wrap(title[38:],38,"   " ))
         return Listing.NEWLINE.join(out)
         
 class Search_Listing(Listing):
