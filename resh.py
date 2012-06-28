@@ -150,7 +150,12 @@ class resh(cmd.Cmd):
     def do_user(self,line):
         """usage: user username
     Looks up the username and displays his or her overview"""
-        pass
+        if not line:
+            line=input("Display overview for user ")
+        #try:
+        self.load_Listing(User_Listing(self.reddit.get_redditor(line)))
+        #except:
+            #print("The user "+line+" does not exist")
 
     def do_go(self,line):
         """usage: go number
@@ -158,10 +163,12 @@ class resh(cmd.Cmd):
     of each item in every listing"""
         try:
             if(self.listing):
-                goto=self.listing.items[int(line)-1]
+                goto=self.listing.go(int(line))
 
                 if(isinstance(goto,reddit.objects.Subreddit)):
-                    self.onecmd('subreddit '+goto.display_name)
+                    self.load_Listing(Subreddit_Listing(goto))
+                if(isinstance(goto,reddit.objects.Submission)):
+                    self.load_Listing(Submission_Listing(goto))
                 else:
                     print("Can't go to a "+goto.__class__.__name__)
             else:
