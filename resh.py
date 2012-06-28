@@ -55,20 +55,20 @@ class resh(cmd.Cmd):
             else:
                 self.prompt="resh>"
             
-    def do_back(self,list):
+    def do_back(self,line):
         """usage: back [pages]
     Goes back the specified number of pages in the browsing history.
     If pages is left blank, it defaults to 1"""
         try:
-            if list=='': list='1'
-            pages=int(list)
+            if line=='': line='1'
+            pages=int(line)
             for i in range(pages):
                 self.back()
             if self.listing: print(self.listing)
         except ValueError:
             print("Invalid argument ",line)
             
-    def do_next(self,list):
+    def do_next(self,line):
         """usage: next
     Displays the next 25 items in the current listing"""
 
@@ -76,7 +76,7 @@ class resh(cmd.Cmd):
         print(self.listing)
             
             
-    def do_prev(self,list):
+    def do_prev(self,line):
         """usage: prev
     Displays the previous 25 items in the current listing"""
         try:
@@ -118,14 +118,16 @@ class resh(cmd.Cmd):
     Goes to a subreddit. If subreddit isn't specified, the command 
     lists the user's suscribed subreddits."""
         if line:
-            self.load_Listing(Subreddit_Listing(self.reddit.get_subreddit(line)))
-            
+            try:
+                self.load_Listing(Subreddit_Listing(self.reddit.get_subreddit(line)))
+            except:
+                print("The subreddit "+line+" does not exist")
         else:
             if self.redditor is not None:
                 #get subreddits
                 self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits(limit=None)))
             else:
-                print("You must log in to view your subscribed subreddits. To log in, type login [user]")
+                print("You must log in to view your subscribed subreddits. To log in, type login <user>")
     
     def do_frontpage(self,line):
         """usage: frontpage
@@ -144,13 +146,35 @@ class resh(cmd.Cmd):
             self.redditor=self.reddit.user
         except reddit.errors.InvalidUserPass:
             print("Invalid user or password. Try again")
-        except URLError:
-            print("Network error, unable to login")
         
     def do_user(self,line):
         """usage: user username
     Looks up the username and displays his or her overview"""
         pass
+
+    def do_go(self,line):
+        """usage: go number
+    Goes to the specified item in the current page. Numbers are printed on the left
+    of each item in every listing"""
+        try:
+            if(self.listing):
+                goto=self.listing.items[int(line)-1]
+
+                if(isinstance(goto,reddit.objects.Subreddit)):
+                    self.onecmd('subreddit '+goto.display_name)
+                else:
+                    print("Can't go to a "+goto.__class__.__name__)
+            else:
+                print("There are no items to go to. Type 'frontpage' to see its items.")
+            
+        except ValueError:
+            print("Invalid argument. For help, type 'help go' ")
+
+    def onecmd(self,command):
+        try:
+            return super().onecmd(command)
+        except URLError:
+            print("Can't reach reddit. There may be a problem with your connection or reddit may be down.")
     
         
         
@@ -160,7 +184,7 @@ if __name__ == "__main__":
     Welcome to resh, the reddit command-line shell
     This program is free software, see COPYING for details
     
-    Type a subreddit's name or 'frontpage' to show posts
+    Type 'frontpage' or 'subreddit <name>' to show posts
     For a list of commands, type 'help'
-    To exit type 'exit' (duh!) or press {}
+    To exit, type 'exit' (duh!) or press {}
     """.format("CTRL-Z then Enter" if sys.platform=='win32' else "CTRL-D"  ))

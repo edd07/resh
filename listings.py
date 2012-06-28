@@ -22,10 +22,18 @@ import reddit
 import sys
 
 class Listing():
-    BOLD="\033[1m"
-    RESET="\033[0m"
-    SEPARATOR="--------------------------------------------------------------------------------\n"
-    NEWLINE="\n"
+    
+    #Fix formatting for the sucky windows console
+    if sys.platform == 'win32':
+        BOLD=""
+        RESET=""
+        SEPARATOR="--------------------------------------------------------------------------------"
+        NEWLINE=""
+    else:
+        BOLD="\033[1m"
+        RESET="\033[0m"
+        SEPARATOR="--------------------------------------------------------------------------------\n"
+        NEWLINE="\n"
     
     def __init__(self, title, prompt, generator):
         self.title=title
@@ -34,17 +42,18 @@ class Listing():
         self.prev=[] #pages that come before the current one
         self.next=[] #pages that come after the current one
         self.items=None
+        if(sys.platform!='win32'): self._asciify=lambda x:x #bypass asciify for non-windows systems
         self.next_Page()
-        #Fix formatting for the sucky windows console
-        if sys.platform == 'win32':
-            Listing.BOLD=""
-            Listing.RESET=""
-            Listing.SEPARATOR="--------------------------------------------------------------------------------"
-            Listing.NEWLINE=""
+
 
     def _asciify(self,s):
         """Strip non-ascii chars from the string  because windows is dumb"""
-        return "".join(i for i in s if ord(i)<128)
+        return "".join(i for i in s if (ord(i)<128 and ord(i)!=10) )
+
+    def _shorten(self, s, n):
+        """Shortens a string to n characters, including ellipsis (...)"""
+        if(len(s)<=n): return s 
+        else: return s[:n-3]+"..."
 
 
     def _wrap(self,string,width,margin):
@@ -106,10 +115,8 @@ class Listing():
         return Listing.SEPARATOR.join(out)
     
     def str_Submission(self,submission):
-        if sys.platform=='win32': 
-            title=self._asciify(submission.title) 
-        else: 
-            title=submission.title
+        
+        title=self._asciify(submission.title+" ("+submission.domain+")") 
 
         out=["{}{:>4} {:<46}{} {:>25}".format(
                                                     Listing.BOLD,
@@ -147,7 +154,7 @@ class My_Subreddits_Listing(Listing):
             return count
     
     def str_Subreddit(self,subreddit):
-        title=subreddit.title
+        title=self._asciify(subreddit.title)
         out=[ "{}{:<38}{} {:>25} {:>4} readers".format(
                                                    Listing.BOLD,
                                                    title[:38],
@@ -184,7 +191,7 @@ class Subreddit_Listing(Listing):
         self.subreddit=sub
         generator = getattr(self.subreddit, 'get_'+sort)(limit=None)
         super().__init__(
-                         "{}{:<46}{} {:>25}".format(Listing.BOLD,sub.title,Listing.RESET,"/r/"+sub.display_name),
+                         "{}{:<46}{} {:>25}".format(Listing.BOLD,self._shorten(self._asciify(sub.title),46),Listing.RESET,"/r/"+sub.display_name),
                          "/r/"+sub.display_name+">",
                          generator
                                             )
