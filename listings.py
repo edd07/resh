@@ -195,6 +195,20 @@ class Subreddit_Listing(Listing):
                          "/r/"+sub.display_name+">",
                          generator
                                             )
+    def str_Submission(self,submission):
+        
+        title=self._asciify(submission.title+" ("+submission.domain+")") 
+
+        out=["{}{:>4} {:<46}{} {:>25}".format(
+                                                    Listing.BOLD,
+                                                    submission.score,
+                                                    title[:46],
+                                                    Listing.RESET,
+                                                    "by "+submission.author.name
+                                                    )]
+
+        out.append( self._wrap(title[46:],46,"        " ))
+        return Listing.NEWLINE.join(out)
         
 class Frontpage_Listing(Listing):
     """Listing for the reddit.com front page"""
