@@ -41,14 +41,16 @@ class Listing():
         self.generator=generator
         self.prev=[] #pages that come before the current one
         self.next=[] #pages that come after the current one
+        self.content=""
         self.items=None
-        if(sys.platform!='win32'): self._asciify=lambda x:x #bypass asciify for non-windows systems
+        if(sys.platform!='win32'): self._asciify=lambda x: x #bypass asciify for non-windows systems
+        self.str_str=lambda x: x
         self.next_Page()
 
 
-    def _asciify(self,s):
+    def _asciify(self,s,strip_newlines=True):
         """Strip non-ascii chars from the string  because windows is dumb"""
-        return "".join(i for i in s if (ord(i)<128 and ord(i)!=10) )
+        return "".join(i for i in s if (ord(i)<128 and ( ord(i)!=10 if strip_newlines else True ) ))
 
     def _shorten(self, s, n):
         """Shortens a string to n characters, including ellipsis (...)"""
@@ -60,10 +62,14 @@ class Listing():
         """Splits a string across several lines, each 80 columns wide"""
         #TODO: Make it word-wrap
         out=[]
+        if width>80-len(margin): width=80-len(margin)
         while string:
             out.append( (margin+"{:<"+str(80-len(margin))+"}").format(string[:width]))
             string=string[width:]
         return Listing.NEWLINE.join(out)
+    
+    def go(self,num):
+        return self.items[num-1]
 
         
     def next_Page(self):
@@ -94,18 +100,22 @@ class Listing():
     
     def __str__(self):
         out=[]
+        if not self.prev:
+            out.append(self.content)
+            
         out.append("{}{:<72}{} page {:>2}".format(
                                                  Listing.BOLD,
                                                  self.title,
                                                  Listing.RESET,
                                                  len(self.prev)+1
                                                  ))
-        
+        counter=1
         for i in self.items:
             try:
-                out.append("{:>2} ".format(self.items.index(i)+1)+getattr(self,"str_"+i.__class__.__name__)(i))
+                out.append("{:>2} ".format(counter)+getattr(self,"str_"+i.__class__.__name__)(i))
             except AttributeError:
-                out.append("{:>2} ".format(self.items.index(i)+1)+"Can't handle a(n) "+i.__class__.__name__)
+                out.append("{:>2} ".format(counter)+"Can't handle a(n) "+i.__class__.__name__)
+            counter=counter+1
 
         if self.items:
             out.append("{:<80}".format("To enter an item, type go <number>"))
@@ -131,8 +141,13 @@ class Listing():
         
     
     def str_Comment(self,comment):
-        #TODO: Wrap comments and indent depending on level
-        return "Comment OK"
+        out=["{:>4} {:<72}".format(
+                                   comment.ups-comment.downs,
+                                   "in "+self._shorten(self._asciify(comment.submission.title),72),
+                                          )]
+
+        out.append( self._wrap(comment.body,77,"   " ))
+        return Listing.NEWLINE.join(out)
         
 class My_Subreddits_Listing(Listing):
     """Listing of the user's subscribed subreddits"""
@@ -195,6 +210,7 @@ class Subreddit_Listing(Listing):
                          "/r/"+sub.display_name+">",
                          generator
                                             )
+        
     def str_Submission(self,submission):
         
         title=self._asciify(submission.title+" ("+submission.domain+")") 
@@ -214,6 +230,37 @@ class Frontpage_Listing(Listing):
     """Listing for the reddit.com front page"""
     def __init__(self,generator):
         super().__init__("Front Page","frontpage>",generator)
+        
+
+class User_Listing(Listing):
+    """Listing for an user's overview"""
+    def __init__(self,user):
+        self.user=user
+        super().__init__(
+                         "Overview for "+user.name,
+                         "user>",
+                         user.get_overview(limit=None)
+                         )
+        
+
+class Submission_Listing(Listing):
+    """Listing for a submission's comment page"""
+    def __init__(self,submission):
+        self.submission=submission
+        super().__init__(
+                         "Comments",
+                         "submission>",
+                         (i for i in submission.comments)
+                        )
+        if(self.submission.is_self):
+            body= self._wrap(self._asciify(self.submission.selftext,strip_newlines=False),80,"")
+        else:
+            body= "Link: {:<74}".format(self.submission.url)
+        
+        self.content=Listing.BOLD+self._wrap(submission.title,80,"")+Listing.RESET+Listing.SEPARATOR+body
+           
+
+
 
 
         
