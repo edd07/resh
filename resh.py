@@ -70,7 +70,7 @@ class resh(cmd.Cmd):
             
     def do_next(self,line):
         """usage: next
-    Displays the next 25 items in the current listing"""
+    Displays the next items in the current listing"""
 
         self.listing.next_Page()
         print(self.listing)
@@ -78,7 +78,7 @@ class resh(cmd.Cmd):
             
     def do_prev(self,line):
         """usage: prev
-    Displays the previous 25 items in the current listing"""
+    Displays the previous items in the current listing"""
         try:
             self.listing.prev_Page()
             print(self.listing)
@@ -159,12 +159,11 @@ class resh(cmd.Cmd):
 
     def do_go(self,line):
         """usage: go number
-    Goes to the specified item in the current page. Numbers are printed on the left
-    of each item in every listing"""
+    Goes to the specified item in the current page. Numbers are printed
+    on the left of each item in every listing"""
         try:
             if(self.listing):
                 goto=self.listing.go(int(line))
-
                 if(isinstance(goto,reddit.objects.Subreddit)):
                     self.load_Listing(Subreddit_Listing(goto))
                 if(isinstance(goto,reddit.objects.Submission)):
