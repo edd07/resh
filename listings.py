@@ -64,9 +64,10 @@ class Listing():
         #TODO: Make it word-wrap
         out=[]
         if width>80-len(margin): width=80-len(margin)
-        while string:
-            out.append( (margin+"{:<"+str(80-len(margin))+"}").format(string[:width]))
-            string=string[width:]
+        for s in string.split("\n"):
+            while s:
+                out.append( (margin+"{:<"+str(80-len(margin))+"}").format(s[:width]))
+                s=s[width:]
         return Listing.NEWLINE.join(out)
     
     def go(self,num):
@@ -142,9 +143,9 @@ class Listing():
         
     
     def str_Comment(self,comment):
-        out=["{:>4} {:<72}".format(
+        out=["in {:<62} {:>4} points".format(
                                    comment.ups-comment.downs,
-                                   "in "+self._shorten(self._asciify(comment.submission.title),72),
+                                   self._shorten(self._asciify(comment.submission.title),62),
                                           )]
 
         out.append( self._wrap(comment.body,77,"   " ))
