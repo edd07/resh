@@ -32,7 +32,7 @@ class Listing():
     else:
         BOLD="\033[1m"
         RESET="\033[0m"
-        SEPARATOR="--------------------------------------------------------------------------------\n"
+        SEPARATOR="\n--------------------------------------------------------------------------------\n"
         NEWLINE="\n"
     
     def __init__(self, title, prompt, generator):
@@ -43,7 +43,8 @@ class Listing():
         self.next=[] #pages that come after the current one
         self.content=""
         self.items=None
-        if(sys.platform!='win32'): self._asciify=lambda x: x #bypass asciify for non-windows systems
+        #bypass asciify for non-windows systems
+        if(sys.platform!='win32'): self._asciify=lambda x,strip_newlines=True: x
         self.str_str=lambda x: x
         self.next_Page()
 
@@ -135,8 +136,8 @@ class Listing():
                                                     Listing.RESET,
                                                     "/r/"+submission.subreddit.display_name
                                                     )]
-
-        out.append( self._wrap(title[46:],46,"        " ))
+        if len(title)>46:
+            out.append(Listing.BOLD+ self._wrap(title[46:],46,"        " )+Listing.RESET)
         return Listing.NEWLINE.join(out)
         
     
@@ -177,7 +178,8 @@ class My_Subreddits_Listing(Listing):
                                                    "/r/"+subreddit.display_name,
                                                    self.format_count(subreddit.subscribers)
                                                   )]
-        out.append( self._wrap(title[38:],38,"   " ))
+        if len(title)>38:
+            out.append(Listing.BOLD+self._wrap(title[38:],38,"   " )+Listing.RESET)
         return Listing.NEWLINE.join(out)
         
 class Search_Listing(Listing):
@@ -222,8 +224,8 @@ class Subreddit_Listing(Listing):
                                                     Listing.RESET,
                                                     "by "+submission.author.name
                                                     )]
-
-        out.append( self._wrap(title[46:],46,"        " ))
+        if len(title)>46:
+            out.append(Listing.BOLD+self._wrap(title[46:],46,"        " )+Listing.RESET)
         return Listing.NEWLINE.join(out)
         
 class Frontpage_Listing(Listing):
