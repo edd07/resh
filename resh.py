@@ -176,6 +176,12 @@ class resh(cmd.Cmd):
             
         except ValueError:
             print("Invalid argument. For help, type 'help go' ")
+            
+    def do_py(self,line):
+        """usage: py expression
+    Evaluates a python expression and prints its value. It's useful
+    mostly for debugging"""
+        print(eval(line))
 
     def onecmd(self,command):
         try:

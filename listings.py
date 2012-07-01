@@ -119,7 +119,7 @@ class Listing():
             counter=counter+1
 
         if self.items:
-            out.append("{:<80}".format("To enter an item, type go <number>"))
+            out.append("{:<80}".format("To enter an item, type 'go <number>'. For more items, type 'next'"))
         else:
             out.append("{:<80}".format("There doesn't seem to be anything here"))
 
