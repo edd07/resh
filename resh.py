@@ -32,6 +32,7 @@ class resh(cmd.Cmd):
     #reply command
     #friend command
     #upvote & downvote commands
+    #document scriptable features
     
     def __init__(self):
         super(resh,self).__init__()
@@ -99,6 +100,10 @@ class resh(cmd.Cmd):
         print(self.listing)
     
     def do_search(self,line):
+        """usage: search [pattern]
+    Search posts with a pattern. If used inside a subreddit, the results
+    are restricted to the current subreddit. Otherwise, the search 
+    returns result from the whole site"""
         #TODO: add syntax to search for subreddit names
         
         if not line:

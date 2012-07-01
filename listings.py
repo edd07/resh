@@ -48,6 +48,23 @@ class Listing():
         if(sys.platform!='win32'): self._asciify=lambda x,strip_newlines=True: x
         self.str_str=lambda x: x
         self.next_Page()
+    
+    def _time(self,timestamp):
+        delta = (datetime.utcnow()-datetime.fromtimestamp(timestamp))
+        if(delta.days>0):
+            if delta.days > 365:
+                return str(int(delta.days//365))+(" year" if delta.days//365==1 else " years")
+            elif delta.days>31:
+                return str(int(delta.days//31))+(" month" if delta.days//31==1 else " months")
+            else:
+                return str(int(delta.days))+(" day" if delta.days==1 else " days")
+        else:
+            if delta.total_seconds()>3600:
+                return str(int(delta.total_seconds()//3600))+(" hour" if delta.total_seconds()//3600==1 else " hours")
+            elif delta.total_seconds()>60:
+                return str(int(delta.total_seconds()//60))+(" minute" if delta.total_seconds()//60==1 else " minutes")
+            else:
+                return str(int(delta.total_seconds()))+(" second" if delta.total_seconds()==1 else " seconds")
 
 
     def _asciify(self,s,strip_newlines=True):
@@ -245,14 +262,14 @@ class User_Listing(Listing):
                          "user>",
                          user.get_overview(limit=None)
                          )
-        self.content="{}User {:<74}{}{}Link karma:{:<15} Comment karma:{:<15} Reditor for {:>2} year(s)".format(
+        self.content="{}User {:<74}{}{}Link karma:{:<14} Comment karma:{:<14} Reditor for {:>12}".format(
                                 Listing.BOLD,
                                 user.name,
                                 Listing.RESET,
                                 Listing.NEWLINE,
                                 user.link_karma,
                                 user.comment_karma,
-                                (datetime.today()-datetime.fromtimestamp(user.created)).days//365
+                                self._time(user.created)
                                                                                   )
         
 
@@ -271,6 +288,17 @@ class Submission_Listing(Listing):
             body= "Link: {:<74}".format(self.submission.url)
         
         self.content=Listing.BOLD+self._wrap(submission.title,80,"")+Listing.RESET+Listing.SEPARATOR+body
+        
+    def str_Comment(self,comment):
+        out=["by {:<43} {:>4} points  {:>12} ago".format(
+                                   self._shorten(self._asciify(comment.author.name),48),
+                                    comment.ups-comment.downs,
+                                    self._time(comment.created)
+                                    #comment.created
+                                          )]
+
+        out.append(Listing.BOLD+self._wrap(comment.body,77,"   " )+Listing.RESET)
+        return Listing.NEWLINE.join(out)
            
 
 
