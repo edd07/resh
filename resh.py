@@ -24,6 +24,7 @@ import reddit
 from urllib.error import URLError
 from listings import *
 import sys
+from inspect import getmembers #for the py command
 
 class resh(cmd.Cmd):
     
@@ -181,7 +182,10 @@ class resh(cmd.Cmd):
         """usage: py expression
     Evaluates a python expression and prints its value. It's useful
     mostly for debugging"""
-        print(eval(line))
+        try:
+            print(eval(line))
+        except Exception as e:
+            print(e)
 
     def onecmd(self,command):
         try:
