@@ -20,6 +20,7 @@
 
 import reddit
 import sys
+from datetime import datetime, timedelta
 
 class Listing():
     
@@ -144,11 +145,11 @@ class Listing():
     
     def str_Comment(self,comment):
         out=["in {:<62} {:>4} points".format(
-                                   comment.ups-comment.downs,
                                    self._shorten(self._asciify(comment.submission.title),62),
+                                    comment.ups-comment.downs,
                                           )]
 
-        out.append( self._wrap(comment.body,77,"   " ))
+        out.append(Listing.BOLD+self._wrap(comment.body,77,"   " )+Listing.RESET)
         return Listing.NEWLINE.join(out)
         
 class My_Subreddits_Listing(Listing):
@@ -244,6 +245,15 @@ class User_Listing(Listing):
                          "user>",
                          user.get_overview(limit=None)
                          )
+        self.content="{}User {:<74}{}{}Link karma:{:<15} Comment karma:{:<15} Reditor for {:>2} year(s)".format(
+                                Listing.BOLD,
+                                user.name,
+                                Listing.RESET,
+                                Listing.NEWLINE,
+                                user.link_karma,
+                                user.comment_karma,
+                                (datetime.today()-datetime.fromtimestamp(user.created)).days//365
+                                                                                  )
         
 
 class Submission_Listing(Listing):
