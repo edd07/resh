@@ -87,7 +87,7 @@ class Listing():
             #retrieve new stories
             self.items=[]
             try:
-                for i in range(25):
+                for i in range(10):
                     self.items.append(next(self.generator))
             except StopIteration:
                 pass

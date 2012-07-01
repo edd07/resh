@@ -27,6 +27,11 @@ import sys
 from inspect import getmembers #for the py command
 
 class resh(cmd.Cmd):
+    #TODO: 
+    #submit command
+    #reply command
+    #friend command
+    #upvote & downvote commands
     
     def __init__(self):
         super(resh,self).__init__()
