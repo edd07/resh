@@ -167,7 +167,7 @@ class resh(cmd.Cmd):
 
                 if(isinstance(goto,reddit.objects.Subreddit)):
                     self.load_Listing(Subreddit_Listing(goto))
-                if(isinstance(goto,reddit.objects.Submission)):
+                elif(isinstance(goto,reddit.objects.Submission)):
                     self.load_Listing(Submission_Listing(goto))
                 else:
                     print("Can't go to a "+goto.__class__.__name__)
