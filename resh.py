@@ -33,6 +33,8 @@ class resh(cmd.Cmd):
     #friend command
     #upvote & downvote commands
     #document scriptable features
+    #open command to follow links
+    #checking orangereds
     
     def __init__(self):
         super(resh,self).__init__()
@@ -176,10 +178,12 @@ class resh(cmd.Cmd):
             if(self.listing):
                 goto=self.listing.go(int(line))
 
-                if(isinstance(goto,reddit.objects.Subreddit)):
+                if isinstance(goto,reddit.objects.Subreddit):
                     self.load_Listing(Subreddit_Listing(goto))
-                elif(isinstance(goto,reddit.objects.Submission)):
+                elif isinstance(goto,reddit.objects.Submission):
                     self.load_Listing(Submission_Listing(goto))
+                elif isinstance(goto,reddit.objects.Comment):
+                    self.load_Listing(Comment_Listing(goto))
                 else:
                     print("Can't go to a "+goto.__class__.__name__)
             else:
