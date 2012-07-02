@@ -327,7 +327,7 @@ class Comment_Listing(Listing):
                                     len(self.prev)+1
                                                  ))
         for i in self.items:
-            out.append(self.__str_Reply(i,"|"))
+            out.append(self.__str_Reply(i,"| "))
             
         if self.items:
             out.append("{:<80}".format("To enter an item, type 'go <number>'. For more items, type 'next'"))
