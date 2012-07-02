@@ -92,7 +92,7 @@ class Listing():
         return self.items[num-1]
 
         
-    def next_Page(self):
+    def next_Page(self,items_per_page=10):
         """Retrieves the next page of items either from reddit, or the local copies
         if they've already been visited"""
         if self.items:
@@ -104,7 +104,7 @@ class Listing():
             #retrieve new stories
             self.items=[]
             try:
-                for i in range(10):
+                for i in range(items_per_page):
                     self.items.append(next(self.generator))
             except StopIteration:
                 pass
@@ -274,7 +274,7 @@ class User_Listing(Listing):
         
 
 class Submission_Listing(Listing):
-    """Listing for a submission's comment page"""
+    """Listing for a submission's comment page"""    
     def __init__(self,submission):
         self.submission=submission
         super().__init__(
