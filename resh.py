@@ -24,6 +24,7 @@ import reddit
 from urllib.error import URLError
 from listings import *
 import sys
+import os
 from inspect import getmembers #for the py command
 
 class resh(cmd.Cmd):
@@ -49,8 +50,16 @@ class resh(cmd.Cmd):
         self.do_r=self.do_subreddit
         self.do_fp = self.do_frontpage
         self.do_u = self.do_user
+    
+    def clear(self):
+        if sys.platform=='win32':
+            os.system('cls')
+        else:
+            os.system('clear')
         
     def load_Listing(self,listing):
+        self.clear()
+            
         self.history.append(self.listing)
         self.listing=listing
         self.prompt=self.listing.prompt
@@ -73,7 +82,9 @@ class resh(cmd.Cmd):
             pages=int(line)
             for i in range(pages):
                 self.back()
-            if self.listing: print(self.listing)
+            if self.listing: 
+                self.clear()
+                print(self.listing)
         except ValueError:
             print("Invalid argument ",line)
             
@@ -99,6 +110,7 @@ class resh(cmd.Cmd):
         return True
 
     def emptyline(self):
+        self.clear()
         print(self.listing)
     
     def do_search(self,line):
