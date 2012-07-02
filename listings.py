@@ -278,7 +278,7 @@ class Submission_Listing(Listing):
     def __init__(self,submission):
         self.submission=submission
         super().__init__(
-                         "Comments",
+                         "Top-level Comments",
                          "submission>",
                          (i for i in submission.comments)
                         )
@@ -294,11 +294,86 @@ class Submission_Listing(Listing):
                                    self._shorten(self._asciify(comment.author.name),48),
                                     comment.ups-comment.downs,
                                     self._time(comment.created)
-                                    #comment.created
                                           )]
 
         out.append(Listing.BOLD+self._wrap(comment.body,77,"   " )+Listing.RESET)
         return Listing.NEWLINE.join(out)
+    
+class Comment_Listing(Listing):
+    """Listing for a comment's replies"""
+    def __init__(self,comment):
+        super().__init__(
+                         "Replies for {:<}",
+                         "comment>",
+                         (i for i in comment.replies)
+                         )
+        self.comment=comment
+        self._flat_comments=[]
+        self._counter=1
+        self.content=Listing.BOLD+self._wrap(self._asciify(comment.body,strip_newlines=False),77,"   " )+Listing.RESET
+        
+    def __str__(self):
+        out=["Comment by {:<35} {:>4} points  {:>12} ago".format(
+                                    self._shorten(self._asciify(self.comment.author.name),48),
+                                    self.comment.ups-self.comment.downs,
+                                    self._time(self.comment.created)
+                                          )]
+
+        out.append(self.content)
+        out.append("{}{:<72}{} page {:>2}".format(
+                                    Listing.BOLD,
+                                    "Replies",
+                                    Listing.RESET,
+                                    len(self.prev)+1
+                                                 ))
+        for i in self.items:
+            out.append(self.__str_Reply(i,"|"))
+            
+        if self.items:
+            out.append("{:<80}".format("To enter an item, type 'go <number>'. For more items, type 'next'"))
+        else:
+            out.append("{:<80}".format("There doesn't seem to be anything here"))
+        
+        return Listing.SEPARATOR.join(out)
+    
+    def next_Page(self):
+        self._counter=1
+        self._flat_comments=[]
+        super().next_Page()
+    
+    def prev_Page(self):
+        self._counter=1
+        self._flat_comments=[]
+        super().prev_Page()
+        
+    def go(self,num):
+        return self._flat_comments[num-1]
+        
+        
+    def __str_Reply(self,reply,margin):
+        if isinstance(reply,reddit.objects.Comment):
+            body=("{}{:<3}by {:<"+str(38-len(margin))+"} {:>4} points  {:>12} ago").format(
+                                        margin,
+                                        self._counter,
+                                        self._shorten(self._asciify(reply.author.name),48),
+                                        reply.ups-reply.downs,
+                                        self._time(reply.created)
+                                              )+Listing.NEWLINE+\
+                                              Listing.BOLD+\
+                                              self._wrap(reply.body, 80, margin)+\
+                                              Listing.RESET
+            out=[body]
+            
+            self._counter+=1
+            self._flat_comments.append(reply)
+            
+            for i in reply.replies:
+                out.append(self.__str_Reply(i,margin+" | "))
+            
+            return Listing.SEPARATOR.join(out)
+        else:
+            return ""
+        
            
 
 
