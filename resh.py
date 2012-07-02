@@ -24,6 +24,7 @@ import reddit
 from urllib.error import URLError
 from listings import *
 import sys
+import os
 from inspect import getmembers #for the py command
 
 class resh(cmd.Cmd):
@@ -51,6 +52,11 @@ class resh(cmd.Cmd):
         self.do_u = self.do_user
         
     def load_Listing(self,listing):
+        if sys.platform=='win32':
+            os.system('cls')
+        else:
+            os.system('clear')
+            
         self.history.append(self.listing)
         self.listing=listing
         self.prompt=self.listing.prompt
