@@ -290,7 +290,7 @@ class Submission_Listing(Listing):
         self.content=Listing.BOLD+self._wrap(submission.title,80,"")+Listing.RESET+Listing.SEPARATOR+body
         
     def str_Comment(self,comment):
-        out=["by {:<43} {:>4} points  {:>12} ago".format(
+        out=["by {:<43} {:>4} points  {:>13} ago".format(
                                    self._shorten(self._asciify(comment.author.name),48),
                                     comment.ups-comment.downs,
                                     self._time(comment.created)
@@ -310,10 +310,10 @@ class Comment_Listing(Listing):
         self.comment=comment
         self._flat_comments=[]
         self._counter=1
-        self.content=Listing.BOLD+self._wrap(self._asciify(comment.body,strip_newlines=False),77,"   " )+Listing.RESET
+        self.content=Listing.BOLD+self._wrap(self._asciify(comment.body,strip_newlines=False),77,"" )+Listing.RESET
         
     def __str__(self):
-        out=["Comment by {:<35} {:>4} points  {:>12} ago".format(
+        out=["Comment by {:<38} {:>4} points  {:>13} ago".format(
                                     self._shorten(self._asciify(self.comment.author.name),48),
                                     self.comment.ups-self.comment.downs,
                                     self._time(self.comment.created)
@@ -327,7 +327,8 @@ class Comment_Listing(Listing):
                                     len(self.prev)+1
                                                  ))
         for i in self.items:
-            out.append(self.__str_Reply(i,"| "))
+            if isinstance(i,reddit.objects.Comment):
+                out.append(self.__str_Reply(i,"| "))
             
         if self.items:
             out.append("{:<80}".format("To enter an item, type 'go <number>'. For more items, type 'next'"))
@@ -351,28 +352,26 @@ class Comment_Listing(Listing):
         
         
     def __str_Reply(self,reply,margin):
-        if isinstance(reply,reddit.objects.Comment):
-            body=("{}{:<3}by {:<"+str(38-len(margin))+"} {:>4} points  {:>12} ago").format(
-                                        margin,
-                                        self._counter,
-                                        self._shorten(self._asciify(reply.author.name),48),
-                                        reply.ups-reply.downs,
-                                        self._time(reply.created)
-                                              )+Listing.NEWLINE+\
-                                              Listing.BOLD+\
-                                              self._wrap(reply.body, 80, margin)+\
-                                              Listing.RESET
-            out=[body]
-            
-            self._counter+=1
-            self._flat_comments.append(reply)
-            
-            for i in reply.replies:
+        body=("{}{:<3} by {:<"+str(42-len(margin))+"} {:>4} points  {:>13} ago").format(
+                                    margin,
+                                    Listing.BOLD+self._counter+Listing.RESET,
+                                    self._shorten(self._asciify(reply.author.name),48),
+                                    reply.ups-reply.downs,
+                                    self._time(reply.created)
+                                          )+Listing.NEWLINE+\
+                                          Listing.BOLD+\
+                                          self._wrap(reply.body, 80, margin)+\
+                                          Listing.RESET
+        out=[body]
+        
+        self._counter+=1
+        self._flat_comments.append(reply)
+        
+        for i in reply.replies:
+            if isinstance(i,reddit.objects.Comment):
                 out.append(self.__str_Reply(i,margin+" | "))
-            
-            return Listing.SEPARATOR.join(out)
-        else:
-            return ""
+        
+        return Listing.SEPARATOR.join(out)
         
            
 
