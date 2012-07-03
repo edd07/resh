@@ -74,9 +74,9 @@ class resh(cmd.Cmd):
                 self.prompt="resh>"
             
     def do_back(self,line):
-        """usage: back [pages]
-    Goes back the specified number of pages in the browsing history.
-    If pages is left blank, it defaults to 1"""
+        """usage: back [num]
+    Goes to the previous listing in the browsing history
+    If num is specified, it goes that many listings back."""
         try:
             if line=='': line='1'
             pages=int(line)
@@ -226,10 +226,24 @@ class resh(cmd.Cmd):
 
 if __name__ == "__main__":
     resh().cmdloop("""
-    Welcome to resh, the reddit command-line shell
-    This program is free software, see COPYING for details
-    
-    Type 'frontpage' or 'subreddit <name>' to show posts
-    For a list of commands, type 'help'
-    To exit, type 'exit' (duh!) or press {}
-    """.format("CTRL-Z then Enter" if sys.platform=='win32' else "CTRL-D"  ))
+                   MMMMM MMMMMM.     
+                  MM   ?MM    MM     
+                 MM     OM$   MM     
+                 MM       MMMM7   
+            MMMMMMMMMMM           
+  NMMMM.MMMMM         MMMMM.MMMMN 
+ MM   MMM                 MMM   MM
+ MM  MM                     MM  MM  Welcome to resh,
+ OMNMM     MMM       MMM     MMMMO  the reddit command-line shell.
+   MM      MMM       MMM      MM    
+   MM                         MM    This program is free software,  
+   NM                         M     see COPYING for details.
+    MM     MMM       MMM     MM   
+     MNN     MMMMMMMMM     MMM    
+       MMMM             MMMM      
+          MMMMMMMMMMMMMMM        
+       
+Type 'frontpage' or 'subreddit <name>' to show posts
+For a list of commands, type 'help'
+To exit, type 'exit' (duh!) or press {}
+""".format("CTRL-Z then Enter" if sys.platform=='win32' else "CTRL-D"  ))
