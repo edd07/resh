@@ -93,6 +93,7 @@ class resh(cmd.Cmd):
     Displays the next items in the current listing"""
 
         self.listing.next_Page()
+        self.clear()
         print(self.listing)
             
             
@@ -101,6 +102,7 @@ class resh(cmd.Cmd):
     Displays the previous items in the current listing"""
         try:
             self.listing.prev_Page()
+            self.clear()
             print(self.listing)
         except IndexError:
             print("These are the first posts in this listing")
