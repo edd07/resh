@@ -72,7 +72,8 @@ class resh(cmd.Cmd):
             else:
                 self.prompt="resh>"
                 
-    def multiline_input(self):
+    def multiline_input(self,message):
+        print(message)
         flag=True
         out=[]
         while flag:
@@ -287,12 +288,30 @@ class resh(cmd.Cmd):
             else:
                 f=self.listing.go(int(line)).reply
             
-            print("Write your reply below. When it's finished,\nleave a line blank and press Enter.")
-            f(self.multiline_input())
+            f(self.multiline_input("Write your reply below. When it's finished,\nleave a line blank and press Enter."))
         except ValueError:
             print("Invalid argument. For help, type 'help reply'")
         except AttributeError:
             print("Can't reply to this")
+            
+    def do_message(self,line):
+        """usage: message [recipient]
+    Send a private message to a user or a subreddit. If the recipient
+    is a subreddit, prefix the name with '/r/'"""
+        if self.redditor:
+            try:
+                if not line:
+                    recipient=input("Send a message to: ")
+                else:
+                    recipient=line
+                subject=input("Subject: ")
+                message=self.multiline_input("Write your message below. When it's finished,\nleave a line blank and press Enter.")         
+                self.reddit.compose_message(recipient, subject, message)
+                print("Message sent.")
+            except:
+                print("There was a problem sending the message")
+        else:
+            raise reddit.errors.LoginRequired("")
             
     def do_upvote(self,line):
         """usage: upvote [number]
