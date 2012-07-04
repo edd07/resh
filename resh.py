@@ -30,7 +30,6 @@ from inspect import getmembers #for the py command
 class resh(cmd.Cmd):
     #TODO: 
     #submit command
-    #reply command
     #friend command
     #upvote & downvote commands
     #document scriptable features
@@ -80,7 +79,7 @@ class resh(cmd.Cmd):
         while flag:
             line=input()
             out.append(line)
-            flag= line.strip()==''
+            flag= line!=''
         return "\n\n".join(out)
         
             
@@ -186,7 +185,7 @@ class resh(cmd.Cmd):
             
             unread=list(self.redditor.get_unread())
             if unread:
-                print("You have ",len(unread)," unread messages.")
+                print(Listing.ORANGERED,"You have ",len(unread)," unread messages.",Listing.RESET)
             else:
                 print("You don't have any unread messages.")
             
@@ -276,7 +275,22 @@ class resh(cmd.Cmd):
         except AttributeError:
             print("Invalid argument. For help, type 'help inbox'")
         
-        
+    def do_reply(self,line):
+        """usage: reply [number]
+    Replies to a message, post or comment. If number isn't specified,
+    the reply is posted to the current listing."""      
+        try:
+            if not line:
+                f=self.listing.reddit_object.reply
+            else:
+                f=self.listing.go(int(line)).reply
+            
+            print("Write your reply below. When it's finished,\nleave a line blank and press Enter.")
+            f(self.multiline_input())
+        except ValueError:
+            print("Invalid argument. For help, type 'help reply'")
+        except AttributeError:
+            print("Can't reply to this")
             
     def do_py(self,line):
         """usage: py expression
