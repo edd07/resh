@@ -202,6 +202,15 @@ class My_Subreddits_Listing(Listing):
         if len(title)>38:
             out.append(Listing.BOLD+self._wrap(title[38:],38,"   " )+Listing.RESET)
         return Listing.NEWLINE.join(out)
+    
+class Saved_Listing(Listing):
+    """Listing for the user's saved links"""
+    def __init__(self,generator):
+        super().__init__(
+                         "Saved links",
+                         "saved>",
+                         generator
+                         )
         
 class Search_Listing(Listing):
     """Listing of posts matching a search term"""
