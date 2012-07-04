@@ -34,8 +34,9 @@ class resh(cmd.Cmd):
     #friend command
     #upvote & downvote commands
     #document scriptable features
-    #open command to follow links
-    #checking orangereds
+    #save command
+    #saved links
+    #suscribe/unsuscribe commands
     
     def __init__(self):
         super(resh,self).__init__()
@@ -72,6 +73,16 @@ class resh(cmd.Cmd):
                 self.prompt=self.listing.prompt
             else:
                 self.prompt="resh>"
+                
+    def multiline_input(self):
+        flag=True
+        out=[]
+        while flag:
+            line=input()
+            out.append(line)
+            flag= line.strip()==''
+        return "\n\n".join(out)
+        
             
     def do_back(self,line):
         """usage: back [num]
@@ -154,7 +165,7 @@ class resh(cmd.Cmd):
                 #get subreddits
                 self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits(limit=None)))
             else:
-                print("You must log in to view your subscribed subreddits. To log in, type login <user>")
+                print("You must log in to view your subscribed subreddits. \nTo log in, type login <user>")
     
     def do_frontpage(self,line):
         """usage: frontpage
@@ -171,6 +182,14 @@ class resh(cmd.Cmd):
             else:
                 self.reddit.login(username=line)
             self.redditor=self.reddit.user
+            print("Welcome, ",self.redditor.name,"!")
+            
+            unread=list(self.redditor.get_unread())
+            if unread:
+                print("You have ",len(unread)," unread messages.")
+            else:
+                print("You don't have any unread messages.")
+            
         except reddit.errors.InvalidUserPass:
             print("Invalid user or password. Try again")
         
@@ -205,6 +224,59 @@ class resh(cmd.Cmd):
             
         except ValueError:
             print("Invalid argument. For help, type 'help go' ")
+            
+    def do_open(self,line):
+        #TODO: Special treatment for non-html urls
+        try:
+            if not line:
+                obj=self.listing.reddit_object
+            else:
+                obj=self.listing.go(int(line))
+                
+            if isinstance(obj,reddit.objects.Subreddit):
+                url="http://reddit.com"+obj.url
+            elif isinstance(obj,reddit.objects.Comment):
+                url=obj.permalink
+            else:
+                url=obj.url  
+                       
+            if sys.platform=='win32':
+                os.system('start '+url);
+            elif sys.platform=='darwin':
+                os.system('open '+url)
+            else: #hope it's posix compliant!
+                os.system('xdg-open '+url)
+                
+        except ValueError:
+            print("Invalid argument. For help, type 'help open'")
+        except AttributeError:
+            print("Can't open this")
+            
+    def do_inbox(self,line):
+        """usage: inbox [filter]
+    Displays the logged-in user's messages. If no filter is specified,
+    all mesages are displayed
+    
+    filter    
+        unread:
+            Displays only unread messages and replies
+        all:
+            Displays all messages and replies
+        sent:
+            Displays messages sent by the user"""
+    
+        try:
+            if not line or line=='all':
+                line='all'
+                filter='inbox' 
+            else:
+                filter=line
+            generator=getattr(self.redditor,'get_'+filter)()
+            self.load_Listing(Inbox_Listing(line,generator))
+        except AttributeError:
+            print("Invalid argument. For help, type 'help inbox'")
+        
+        
             
     def do_py(self,line):
         """usage: py expression
