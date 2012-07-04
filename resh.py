@@ -160,11 +160,8 @@ class resh(cmd.Cmd):
             except:
                 print("The subreddit "+line+" does not exist")
         else:
-            if self.redditor is not None:
-                #get subreddits
-                self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits(limit=None)))
-            else:
-                print("You must log in to view your subscribed subreddits. \nTo log in, type login <user>")
+            #get subreddits
+            self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits(limit=None)))
     
     def do_frontpage(self,line):
         """usage: frontpage
@@ -292,6 +289,39 @@ class resh(cmd.Cmd):
         except AttributeError:
             print("Can't reply to this")
             
+    def do_upvote(self,line):
+        """usage: upvote [number]
+    Upvotes a comment or submission. If number isn't specified,
+    the current listing is upvoted"""
+        try:
+            if not line:
+                self.listing.reddit_object.upvote()
+            else:
+                self.listing.go(int(line)).upvote()
+            
+            print("Upvoted")
+        except ValueError:
+            print("Invalid argument. For help, type 'help upvote'")
+        except AttributeError:
+            print("Can't vote on this")
+            
+    def do_downvote(self,line):
+        """usage: downvote [number]
+    Downvotes a comment or submission. If number isn't specified,
+    the current listing is downvoted"""
+        try:
+            if not line:
+                self.listing.reddit_object.downvote()
+            else:
+                self.listing.go(int(line)).downvote()
+            
+            print("Downvoted")
+        except ValueError:
+            print("Invalid argument. For help, type 'help downvote'")
+        except AttributeError:
+            print("Can't vote on this")
+            
+            
     def do_py(self,line):
         """usage: py expression
     Evaluates a python expression and prints its value. It's useful
@@ -306,6 +336,8 @@ class resh(cmd.Cmd):
             return super().onecmd(command)
         except URLError:
             print("Can't reach reddit. There may be a problem with your connection or reddit may be down.")
+        except reddit.errors.LoginRequired:
+            print("Login is required. To log in, type 'login <username>'")
     
         
         
