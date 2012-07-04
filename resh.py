@@ -33,7 +33,6 @@ class resh(cmd.Cmd):
     #friend command
     #upvote & downvote commands
     #document scriptable features
-    #save command
     #saved links
     #suscribe/unsuscribe commands
     
@@ -222,6 +221,9 @@ class resh(cmd.Cmd):
             print("Invalid argument. For help, type 'help go' ")
             
     def do_open(self,line):
+        """usage: open [number]
+        Opens an item in a browser. If number isn't specified,
+    the current listing is opened"""
         #TODO: Special treatment for non-html urls
         try:
             if not line:
@@ -260,17 +262,20 @@ class resh(cmd.Cmd):
             Displays all messages and replies
         sent:
             Displays messages sent by the user"""
-    
-        try:
-            if not line or line=='all':
-                line='all'
-                filter='inbox' 
-            else:
-                filter=line
-            generator=getattr(self.redditor,'get_'+filter)()
-            self.load_Listing(Inbox_Listing(line,generator))
-        except AttributeError:
-            print("Invalid argument. For help, type 'help inbox'")
+        #TODO: Marking messages as read            
+        if self.redditor:
+            try:
+                if not line or line=='all':
+                    line='all'
+                    filter='inbox' 
+                else:
+                    filter=line
+                generator=getattr(self.redditor,'get_'+filter)(limit=None)
+                self.load_Listing(Inbox_Listing(line,generator))
+            except AttributeError:
+                print("Invalid argument. For help, type 'help inbox'")
+        else:
+            raise reddit.errors.LoginRequired('')
         
     def do_reply(self,line):
         """usage: reply [number]
@@ -320,6 +325,43 @@ class resh(cmd.Cmd):
             print("Invalid argument. For help, type 'help downvote'")
         except AttributeError:
             print("Can't vote on this")
+    
+    def do_save(self,line):
+        """usage: save [number]
+    Saves a submission. If number isn't specified,
+    the current submission is saved"""
+        try:
+            if not line:
+                self.listing.reddit_object.save()
+            else:
+                self.listing.go(int(line)).save()
+            
+            print("Saved")
+        except ValueError:
+            print("Invalid argument. For help, type 'help save'")
+        except AttributeError:
+            print("Can't save this")
+    
+    def do_unsave(self,line):
+        """usage: unsave [number]
+    Un-saves a submission. If number isn't specified,
+    the current submission is un-saved"""
+        try:
+            if not line:
+                self.listing.reddit_object.unsave()
+            else:
+                self.listing.go(int(line)).unsave()
+            
+            print("Unsaved")
+        except ValueError:
+            print("Invalid argument. For help, type 'help unsave'")
+        except AttributeError:
+            print("Can't unsave this")
+            
+    def do_saved(self,line):
+        """usage: saved
+    Displays the logged-in user's saved links"""
+        self.load_Listing(Saved_Listing(self.reddit.get_saved_links(limit=None)))
             
             
     def do_py(self,line):
