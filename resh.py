@@ -312,22 +312,22 @@ class resh(cmd.Cmd):
 
 if __name__ == "__main__":
     resh().cmdloop("""
-                   MMMMM MMMMMM.     
-                  MM   ?MM    MM     
-                 MM     OM$   MM     
-                 MM       MMMM7   
-            MMMMMMMMMMM           
-  NMMMM.MMMMM         MMMMM.MMMMN 
- MM   MMM                 MMM   MM
- MM  MM                     MM  MM  Welcome to resh,
- OMNMM     MMM       MMM     MMMMO  the reddit command-line shell.
-   MM      MMM       MMM      MM    
-   MM                         MM    This program is free software,  
-   NM                         M     see COPYING for details.
-    MM     MMM       MMM     MM   
-     MNN     MMMMMMMMM     MMM    
-       MMMM             MMMM      
-          MMMMMMMMMMMMMMM        
+                   ##### ######.     
+                  ##   ?##    ##     
+                 ##      #$   ##     
+                 ##       ####7   
+            ###########           
+  N####.####         #####.####N 
+ ##   ###                 ###   ##
+ ##  ##                     ##  ##  Welcome to resh,
+  ####     ###       ###     ####   the reddit command-line shell.
+   ##      ###       ###      ##    
+   ##                         ##    This program is free software,  
+   ##                         #     see COPYING for details.
+    ##     ###       ###     ##   
+     ###     #########     ###    
+       ####             ####      
+          ###############        
        
 Type 'frontpage' or 'subreddit <name>' to show posts
 For a list of commands, type 'help'
