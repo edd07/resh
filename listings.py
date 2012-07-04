@@ -28,11 +28,13 @@ class Listing():
     if sys.platform == 'win32':
         BOLD=""
         RESET=""
+        ORANGERED=""
         SEPARATOR="--------------------------------------------------------------------------------"
         NEWLINE=""
     else:
         BOLD="\033[1m"
         RESET="\033[0m"
+        ORANGERED="\033[31m"
         SEPARATOR="\n--------------------------------------------------------------------------------\n"
         NEWLINE="\n"
     
