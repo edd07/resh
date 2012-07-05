@@ -28,11 +28,13 @@ class Listing():
     if sys.platform == 'win32':
         BOLD=""
         RESET=""
+        ORANGERED=""
         SEPARATOR="--------------------------------------------------------------------------------"
         NEWLINE=""
     else:
         BOLD="\033[1m"
         RESET="\033[0m"
+        ORANGERED="\033[31m"
         SEPARATOR="\n--------------------------------------------------------------------------------\n"
         NEWLINE="\n"
     
@@ -200,6 +202,15 @@ class My_Subreddits_Listing(Listing):
         if len(title)>38:
             out.append(Listing.BOLD+self._wrap(title[38:],38,"   " )+Listing.RESET)
         return Listing.NEWLINE.join(out)
+    
+class Saved_Listing(Listing):
+    """Listing for the user's saved links"""
+    def __init__(self,generator):
+        super().__init__(
+                         "Saved links",
+                         "saved>",
+                         generator
+                         )
         
 class Search_Listing(Listing):
     """Listing of posts matching a search term"""
@@ -214,7 +225,7 @@ class Search_Listing(Listing):
 class Subreddit_Search_Listing(Search_Listing):
     """Listing of posts matching a search term inside a subreddit"""
     def __init__(self, terms, sub, generator):
-        self.subreddit=sub
+        self.reddit_object=sub
         super().__init__(
                          terms,
                          generator
@@ -224,8 +235,8 @@ class Subreddit_Search_Listing(Search_Listing):
 class Subreddit_Listing(Listing):
     """Listing of a subreddit's front page"""
     def __init__(self, sub, sort='hot'):
-        self.subreddit=sub
-        generator = getattr(self.subreddit, 'get_'+sort)(limit=None)
+        self.reddit_object=sub
+        generator = getattr(sub, 'get_'+sort)(limit=None)
         super().__init__(
                          "{}{:<46}{} {:>25}".format(Listing.BOLD,self._shorten(self._asciify(sub.title),46),Listing.RESET,"/r/"+sub.display_name),
                          "/r/"+sub.display_name+">",
@@ -256,7 +267,7 @@ class Frontpage_Listing(Listing):
 class User_Listing(Listing):
     """Listing for an user's overview"""
     def __init__(self,user):
-        self.user=user
+        self.reddit_object=user
         super().__init__(
                          "Overview for "+user.name,
                          "user>",
@@ -269,31 +280,57 @@ class User_Listing(Listing):
                                 Listing.NEWLINE,
                                 user.link_karma,
                                 user.comment_karma,
-                                self._time(user.created)
+                                self._time(user.created_utc)
                                                                                   )
         
+class Inbox_Listing(Listing):
+    """Lisitng for message inbox"""
+    def __init__(self,filter,generator):
+        super().__init__(
+                         "Messages filtered by '"+filter+"'",
+                         "inbox>",
+                         generator
+                         )
+    def str_Message(self,message):
+        out=["{:<36} by {:<20} {:>12} ago".format(
+                                        self._shorten(self._asciify(message.subject), 36),
+                                        message.author.name,
+                                        self._time(message.created_utc)
+                                                       )]
+        out.append(Listing.BOLD+self._wrap(self._asciify(message.body,strip_newlines=False), 80, "")+Listing.RESET)
+        return Listing.NEWLINE.join(out)
+    
+    def str_Comment(self,comment):
+        out=["in {:<33} by {:<20} {:>12} ago".format(
+                                   self._shorten(self._asciify(comment.submission.title),33),
+                                   comment.author.name,
+                                   self._time(comment.created_utc)
+                                          )]
+
+        out.append(Listing.BOLD+self._wrap(comment.body,80,"" )+Listing.RESET)
+        return Listing.NEWLINE.join(out)
 
 class Submission_Listing(Listing):
     """Listing for a submission's comment page"""    
     def __init__(self,submission):
-        self.submission=submission
+        self.reddit_object=submission
         super().__init__(
                          "Top-level Comments",
                          "submission>",
                          (i for i in submission.comments)
                         )
-        if(self.submission.is_self):
-            body= self._wrap(self._asciify(self.submission.selftext,strip_newlines=False),80,"")
+        if(submission.is_self):
+            body= self._wrap(self._asciify(submission.selftext,strip_newlines=False),80,"")
         else:
-            body= "Link: {:<74}".format(self.submission.url)
+            body= "Link: {:<74}".format(submission.url)
         
         self.content=Listing.BOLD+self._wrap(submission.title,80,"")+Listing.RESET+Listing.SEPARATOR+body
         
     def str_Comment(self,comment):
-        out=["by {:<43} {:>4} points  {:>12} ago".format(
+        out=["by {:<43} {:>4} points  {:>13} ago".format(
                                    self._shorten(self._asciify(comment.author.name),48),
                                     comment.ups-comment.downs,
-                                    self._time(comment.created)
+                                    self._time(comment.created_utc)
                                           )]
 
         out.append(Listing.BOLD+self._wrap(comment.body,77,"   " )+Listing.RESET)
@@ -307,16 +344,20 @@ class Comment_Listing(Listing):
                          "comment>",
                          (i for i in comment.replies)
                          )
-        self.comment=comment
+        self.reddit_object=comment
         self._flat_comments=[]
         self._counter=1
-        self.content=Listing.BOLD+self._wrap(self._asciify(comment.body,strip_newlines=False),77,"   " )+Listing.RESET
+        self.content=Listing.BOLD+self._wrap(self._asciify(comment.body,strip_newlines=False),77,"" )+Listing.RESET
         
     def __str__(self):
-        out=["Comment by {:<35} {:>4} points  {:>12} ago".format(
-                                    self._shorten(self._asciify(self.comment.author.name),48),
-                                    self.comment.ups-self.comment.downs,
-                                    self._time(self.comment.created)
+        try:
+            points=self.reddit_object.ups-self.reddit_object.downs
+        except AttributeError:
+            points='?'
+        out=["Comment by {:<38} {:>4} points  {:>13} ago".format(
+                                    self._shorten(self._asciify(self.reddit_object.author.name),48),
+                                    points,
+                                    self._time(self.reddit_object.created_utc)
                                           )]
 
         out.append(self.content)
@@ -327,7 +368,8 @@ class Comment_Listing(Listing):
                                     len(self.prev)+1
                                                  ))
         for i in self.items:
-            out.append(self.__str_Reply(i,"| "))
+            if isinstance(i,reddit.objects.Comment):
+                out.append(self.__str_Reply(i,"| "))
             
         if self.items:
             out.append("{:<80}".format("To enter an item, type 'go <number>'. For more items, type 'next'"))
@@ -351,28 +393,26 @@ class Comment_Listing(Listing):
         
         
     def __str_Reply(self,reply,margin):
-        if isinstance(reply,reddit.objects.Comment):
-            body=("{}{:<3}by {:<"+str(38-len(margin))+"} {:>4} points  {:>12} ago").format(
-                                        margin,
-                                        self._counter,
-                                        self._shorten(self._asciify(reply.author.name),48),
-                                        reply.ups-reply.downs,
-                                        self._time(reply.created)
-                                              )+Listing.NEWLINE+\
-                                              Listing.BOLD+\
-                                              self._wrap(reply.body, 80, margin)+\
-                                              Listing.RESET
-            out=[body]
-            
-            self._counter+=1
-            self._flat_comments.append(reply)
-            
-            for i in reply.replies:
+        body=("{}{:<3} by {:<"+str(42-len(margin))+"} {:>4} points  {:>13} ago").format(
+                                    margin,
+                                    Listing.BOLD+str(self._counter)+Listing.RESET,
+                                    self._shorten(self._asciify(reply.author.name),48),
+                                    reply.ups-reply.downs,
+                                    self._time(reply.created_utc)
+                                          )+Listing.NEWLINE+\
+                                          Listing.BOLD+\
+                                          self._wrap(reply.body, 80, margin)+\
+                                          Listing.RESET
+        out=[body]
+        
+        self._counter+=1
+        self._flat_comments.append(reply)
+        
+        for i in reply.replies:
+            if isinstance(i,reddit.objects.Comment):
                 out.append(self.__str_Reply(i,margin+" | "))
-            
-            return Listing.SEPARATOR.join(out)
-        else:
-            return ""
+        
+        return Listing.SEPARATOR.join(out)
         
            
 
