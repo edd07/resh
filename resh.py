@@ -47,6 +47,10 @@ class resh(cmd.Cmd):
         self.do_r=self.do_subreddit
         self.do_fp = self.do_frontpage
         self.do_u = self.do_user
+        #self.do_+ = self.do_upvote   : implemented in resh.onecmd (+ and - not allowed in names)
+        #self.do_- = self.do_downvote : 
+
+        
     
     def clear(self):
         if sys.platform=='win32':
@@ -392,7 +396,13 @@ class resh(cmd.Cmd):
 
     def onecmd(self,command):
         try:
-            return super().onecmd(command)
+             # +/- shorthand commands for voting
+            if command=='+':
+                return super().onecmd('upvote')
+            elif command=='-':
+                return super().onecmd('downvote')
+            else:
+                return super().onecmd(command)
         except URLError:
             print("Can't reach reddit. There may be a problem with your connection or reddit may be down.")
         except reddit.errors.LoginRequired:

@@ -6,6 +6,10 @@
 .settings
 .metadata
 
+# Python #
+###################
+__pycache__
+
 # Compiled source #
 ###################
 *.com
@@ -27,6 +31,7 @@
 *.rar
 *.tar
 *.zip
+*.deb
 
 # Logs and databases #
 ######################
