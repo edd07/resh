@@ -31,9 +31,7 @@ class resh(cmd.Cmd):
     #TODO: 
     #submit command
     #friend command
-    #upvote & downvote commands
     #document scriptable features
-    #saved links
     #suscribe/unsuscribe commands
     
     def __init__(self):
@@ -223,7 +221,7 @@ class resh(cmd.Cmd):
             
     def do_open(self,line):
         """usage: open [number]
-        Opens an item in a browser. If number isn't specified,
+    Opens an item in a browser. If number isn't specified,
     the current listing is opened"""
         #TODO: Special treatment for non-html urls
         try:
