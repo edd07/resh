@@ -134,9 +134,11 @@ class Listing():
         counter=1
         for i in self.items:
             try:
-                out.append("{:>2} ".format(counter)+getattr(self,"str_"+i.__class__.__name__)(i))
+                out.append("{}{:>2}{} ".format(Listing.BOLD,counter,Listing.RESET)+\
+                           getattr(self,"str_"+i.__class__.__name__)(i))
             except AttributeError:
-                out.append("{:>2} ".format(counter)+"Can't handle a(n) "+i.__class__.__name__)
+                out.append("{}{:>2}{} ".format(Listing.BOLD,counter,Listing.RESET)+\
+                           "Can't handle a(n) "+i.__class__.__name__)
             counter=counter+1
 
         if self.items:
@@ -168,7 +170,7 @@ class Listing():
                                     comment.ups-comment.downs,
                                           )]
 
-        out.append(Listing.BOLD+self._wrap(comment.body,77,"   " )+Listing.RESET)
+        out.append(self._wrap(comment.body,77,"   " ))
         return Listing.NEWLINE.join(out)
         
 class My_Subreddits_Listing(Listing):
@@ -327,13 +329,15 @@ class Submission_Listing(Listing):
         self.content=Listing.BOLD+self._wrap(submission.title,80,"")+Listing.RESET+Listing.SEPARATOR+body
         
     def str_Comment(self,comment):
-        out=["by {:<43} {:>4} points  {:>13} ago".format(
+        out=["{}by {:<43} {:>4} points  {:>13} ago{}".format(
+                                   Listing.BOLD,
                                    self._shorten(self._asciify(comment.author.name),48),
                                     comment.ups-comment.downs,
-                                    self._time(comment.created_utc)
+                                    self._time(comment.created_utc),
+                                    Listing.RESET
                                           )]
 
-        out.append(Listing.BOLD+self._wrap(comment.body,77,"   " )+Listing.RESET)
+        out.append(self._wrap(comment.body,77,"   " ))
         return Listing.NEWLINE.join(out)
     
 class Comment_Listing(Listing):
@@ -347,14 +351,16 @@ class Comment_Listing(Listing):
         self.reddit_object=comment
         self._flat_comments=[]
         self._counter=1
-        self.content=Listing.BOLD+self._wrap(self._asciify(comment.body,strip_newlines=False),77,"" )+Listing.RESET
+        self.content=self._wrap(self._asciify(comment.body,strip_newlines=False),77,"" )
         
     def __str__(self):
         try:
             points=self.reddit_object.ups-self.reddit_object.downs
         except AttributeError:
             points='?'
-        out=["Comment by {:<38} {:>4} points  {:>13} ago".format(
+        out=["{}Comment by{} {:<38} {:>4} points  {:>13} ago".format(
+                                    Listing.BOLD,
+                                    Listing.RESET,
                                     self._shorten(self._asciify(self.reddit_object.author.name),48),
                                     points,
                                     self._time(self.reddit_object.created_utc)
@@ -393,16 +399,16 @@ class Comment_Listing(Listing):
         
         
     def __str_Reply(self,reply,margin):
-        body=("{}{:<3} by {:<"+str(42-len(margin))+"} {:>4} points  {:>13} ago").format(
+        body=("{}{}{:<3} by {:<"+str(42-len(margin))+"} {:>4} points  {:>13} ago{}").format(
                                     margin,
-                                    Listing.BOLD+str(self._counter)+Listing.RESET,
+                                    Listing.BOLD,
+                                    str(self._counter),
                                     self._shorten(self._asciify(reply.author.name),48),
                                     reply.ups-reply.downs,
-                                    self._time(reply.created_utc)
+                                    self._time(reply.created_utc),
+                                    Listing.RESET
                                           )+Listing.NEWLINE+\
-                                          Listing.BOLD+\
-                                          self._wrap(reply.body, 80, margin)+\
-                                          Listing.RESET
+                                          self._wrap(reply.body, 80, margin)
         out=[body]
         
         self._counter+=1
