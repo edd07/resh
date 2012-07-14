@@ -33,7 +33,7 @@ class resh(cmd.Cmd):
     #friend command
     #document scriptable features
     #suscribe/unsuscribe commands
-    #delete
+    #'go'ing to a message to see the whole conversation
     
     def __init__(self):
         super(resh,self).__init__()
@@ -155,7 +155,7 @@ class resh(cmd.Cmd):
     
     def do_subreddit(self,line):
         """usage: subreddit [subreddit]
-    Goes to a subreddit. If subreddit isn't specified, the command 
+    Goes to a subreddit. If subreddit is omitted, the command 
     lists the user's suscribed subreddits."""
         if line:
             try:
@@ -181,11 +181,11 @@ class resh(cmd.Cmd):
             else:
                 self.reddit.login(username=line)
             self.redditor=self.reddit.user
-            print("Welcome, ",self.redditor.name,"!")
+            print("Welcome, ",self.redditor.name,"!",sep='')
             
             unread=list(self.redditor.get_unread())
             if unread:
-                print(Listing.ORANGERED,"You have ",len(unread)," unread messages.",Listing.RESET)
+                print(Listing.ORANGERED,"You have ",len(unread)," unread messages.",Listing.RESET,sep='')
             else:
                 print("You don't have any unread messages.")
             
@@ -226,7 +226,7 @@ class resh(cmd.Cmd):
             
     def do_open(self,line):
         """usage: open [number]
-    Opens an item in a browser. If number isn't specified,
+    Opens an item in a browser. If number is omitted,
     the current listing is opened"""
         #TODO: Special treatment for non-html urls
         try:
@@ -283,7 +283,7 @@ class resh(cmd.Cmd):
         
     def do_reply(self,line):
         """usage: reply [number]
-    Replies to a message, post or comment. If number isn't specified,
+    Replies to a message, post or comment. If number is omitted,
     the reply is posted to the current listing."""      
         try:
             if not line:
@@ -316,48 +316,10 @@ class resh(cmd.Cmd):
         else:
             raise reddit.errors.LoginRequired("")
         
-    def call_action(self,action,line,success_msg,error_msg):
-        """Calls a function of the current item or a numbered item"""
-        try:
-            if not line:
-                getattr(self.listing.reddit_object,action)()
-            else:
-                getattr(self.listing.go(int(line)), action)()
-            print(success_msg)
-        except ValueError:
-            print("Invalid argument. For help, type 'help ",action,"'",sep='')
-        except AttributeError:
-            print(error_msg)
-            
-    def do_upvote(self,line):
-        """usage: upvote [number]
-    Upvotes a comment or submission. If number isn't specified,
-    the current listing is upvoted"""
-        self.call_action('upvote', line, "Upvoted", "Can't vote on this")    
-            
-    def do_downvote(self,line):
-        """usage: downvote [number]
-    Downvotes a comment or submission. If number isn't specified,
-    the current listing is downvoted"""
-        self.call_action('downvote', line, "Downvoted", "Can't vote on this")
-    
-    def do_save(self,line):
-        """usage: save [number]
-    Saves a submission. If number isn't specified,
-    the current submission is saved"""
-        self.call_action('save', line, "Saved", "Can't save this")
-    
-    def do_unsave(self,line):
-        """usage: unsave [number]
-    Un-saves a submission. If number isn't specified,
-    the current submission is un-saved"""
-        self.call_action('unsave', line, "Unsaved", "Can't unsave this")
-            
     def do_saved(self,line):
         """usage: saved
     Displays the logged-in user's saved links"""
         self.load_Listing(Saved_Listing(self.reddit.get_saved_links(limit=None)))
-            
             
     def do_py(self,line):
         """usage: py expression
@@ -378,9 +340,78 @@ class resh(cmd.Cmd):
             else:
                 return super().onecmd(command)
         except URLError:
-            print("Can't reach reddit. There may be a problem with your connection or reddit may be down.")
+            print("Can't reach reddit. There may be a problem with your connection or reddit may be down")
         except reddit.errors.LoginRequired:
             print("Login is required. To log in, type 'login <username>'")
+        except reddit.errors.ModeratorRequired:
+            print("You must be a moderator to do this")
+            
+    # BEGIN BORING COMMANDS
+    def call_action(self,action,line,success_msg,error_msg):
+        """Calls a function of the current item or a numbered item"""
+        try:
+            if not line:
+                getattr(self.listing.reddit_object,action)()
+            else:
+                getattr(self.listing.go(int(line)), action)()
+            print(success_msg)
+        except ValueError:
+            print("Invalid argument. For help, type 'help ",action,"'",sep='')
+        except AttributeError:
+            print(error_msg)
+            
+    def do_upvote(self,line):
+        """usage: upvote [number]
+    Upvotes a comment or submission. If number is omitted,
+    the current listing is upvoted"""
+        self.call_action('upvote', line, "Upvoted", "Can't vote on this")    
+            
+    def do_downvote(self,line):
+        """usage: downvote [number]
+    Downvotes a comment or submission. If number is omitted,
+    the current listing is downvoted"""
+        self.call_action('downvote', line, "Downvoted", "Can't vote on this")
+    
+    def do_save(self,line):
+        """usage: save [number]
+    Saves a submission. If number is omitted,
+    the current submission is saved"""
+        self.call_action('save', line, "Saved", "Can't save this")
+    
+    def do_unsave(self,line):
+        """usage: unsave [number]
+    Un-saves a submission. If number is omitted,
+    the current submission is un-saved"""
+        self.call_action('unsave', line, "Unsaved", "Can't unsave this")
+        
+    def do_delete(self,line):
+        """usage: delete [number]
+    Deletes a submission or comment. If number is omitted,
+    the current item is deleted."""
+        self.call_action('delete', line, "Deleted", "Can't delete this")
+        
+    def do_report(self,line):
+        """usage: report [number]
+    Reports an item. If number is omitted,
+    the current item is reported. Please only report spammy
+    posts or items with personal information, not in place
+    of downvoting."""
+        self.call_action('report', line, "Reported", "Can't report this")
+    
+    #Approve/remove probably can't do anything yet until a mod-queue listing is implemented
+    def do_approve(self,line):
+        """usage: approve [number]
+    Approves a submission on the mod-queue. If number is omitted,
+    the current item is approved. The user must be logged in
+    as a moderator of the subreddit"""
+        self.call_action('approve', line, "Approved", "Can't approve this")
+    
+    def do_remove(self,line):
+        """usage: remove [number]
+    Removes a submission on the mod-queue. If number is omitted,
+    the current item is removed. The user must be logged in
+    as a moderator of the subreddit"""
+        self.call_action('remove', line, "Removed", "Can't remove this")
     
         
         
