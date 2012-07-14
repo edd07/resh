@@ -254,7 +254,7 @@ class Subreddit_Listing(Listing):
                                                     submission.score,
                                                     title[:46],
                                                     Listing.RESET,
-                                                    "by "+submission.author.name
+                                                    "by "+(submission.author.name if submission.author else "[deleted]")
                                                     )]
         if len(title)>46:
             out.append(Listing.BOLD+self._wrap(title[46:],46,"        " )+Listing.RESET)
@@ -296,7 +296,7 @@ class Inbox_Listing(Listing):
     def str_Message(self,message):
         out=["{:<36} by {:<20} {:>12} ago".format(
                                         self._shorten(self._asciify(message.subject), 36),
-                                        message.author.name,
+                                        message.author.name if message.author else "[deleted]",
                                         self._time(message.created_utc)
                                                        )]
         out.append(Listing.BOLD+self._wrap(self._asciify(message.body,strip_newlines=False), 80, "")+Listing.RESET)
@@ -305,7 +305,7 @@ class Inbox_Listing(Listing):
     def str_Comment(self,comment):
         out=["in {:<33} by {:<20} {:>12} ago".format(
                                    self._shorten(self._asciify(comment.submission.title),33),
-                                   comment.author.name,
+                                   comment.author.name if comment.author else "[deleted]",
                                    self._time(comment.created_utc)
                                           )]
 
@@ -331,7 +331,7 @@ class Submission_Listing(Listing):
     def str_Comment(self,comment):
         out=["{}by {:<43} {:>4} points  {:>13} ago{}".format(
                                    Listing.BOLD,
-                                   self._shorten(self._asciify(comment.author.name),48),
+                                   self._shorten(self._asciify(comment.author.name if comment.author else "[deleted]"),48),
                                     comment.ups-comment.downs,
                                     self._time(comment.created_utc),
                                     Listing.RESET
@@ -361,7 +361,7 @@ class Comment_Listing(Listing):
         out=["{}Comment by{} {:<38} {:>4} points  {:>13} ago".format(
                                     Listing.BOLD,
                                     Listing.RESET,
-                                    self._shorten(self._asciify(self.reddit_object.author.name),48),
+                                    self._shorten(self._asciify(self.reddit_object.author.name if self.reddit_object.author else "[deleted]"),48),
                                     points,
                                     self._time(self.reddit_object.created_utc)
                                           )]
@@ -403,7 +403,7 @@ class Comment_Listing(Listing):
                                     margin,
                                     Listing.BOLD,
                                     str(self._counter),
-                                    self._shorten(self._asciify(reply.author.name),48),
+                                    self._shorten(self._asciify(reply.author.name if reply.author else "[deleted]"),48),
                                     reply.ups-reply.downs,
                                     self._time(reply.created_utc),
                                     Listing.RESET
