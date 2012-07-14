@@ -31,9 +31,9 @@ class resh(cmd.Cmd):
     #TODO: 
     #submit command
     #friend command
-    #document scriptable features
-    #suscribe/unsuscribe commands
+    #useful functions for py command
     #'go'ing to a message to see the whole conversation
+    #view command to see stuff inside the terminal
     
     def __init__(self):
         super(resh,self).__init__()
@@ -48,6 +48,8 @@ class resh(cmd.Cmd):
         self.do_r=self.do_subreddit
         self.do_fp = self.do_frontpage
         self.do_u = self.do_user
+        self.do_sub = self.do_subscribe
+        self.do_unsub = self.do_unsubscribe
         #self.do_+ = self.do_upvote   : implemented in resh.onecmd (+ and - not allowed in names)
         #self.do_- = self.do_downvote : 
 
@@ -84,6 +86,20 @@ class resh(cmd.Cmd):
             out.append(line)
             flag= line!=''
         return "\n\n".join(out)
+    
+    def find_subreddit(self,name=''):
+        """Returns a subreddit either by its name or to where the
+        current item was posted."""
+        if not name:
+            if isinstance(self.listing.reddit_object,reddit.objects.Subreddit):
+                return self.listing.reddit_object
+            else:
+                try:
+                    return self.listing.reddit_object.subreddit
+                except AttributeError:
+                    return None
+        else:
+            return self.reddit.get_subreddit(name)
         
             
     def do_back(self,line):
@@ -328,7 +344,65 @@ class resh(cmd.Cmd):
         try:
             print(eval(line))
         except Exception as e:
-            print(e)
+            print(e.__class__.__name__,e)
+            
+    def do_subscribe(self,line):
+        """usage: subscribe [subreddit]
+    Subscribe to a subreddit. If subreddit is omitted,
+    the user is subscribed to the current subreddit 
+    or where the current submission or comment was posted"""
+        try:
+            sub=self.find_subreddit(line)
+            sub.subscribe()
+            print("Subscribed to",sub.display_name)
+        except ValueError: #This returns a weird JSON exception on a 404
+            print("Subreddit",line,"can't be found")
+        except AttributeError:
+            print("Can't subscribe to this")
+    
+    def do_unsubscribe(self,line):
+        """usage: unsubscribe [subreddit]
+    Unsubscribe from a subreddit. If subreddit is omitted,
+    the user is unsubscribed from the current subreddit 
+    or where the current submission or comment was posted"""
+        try:
+            sub=self.find_subreddit(line)
+            sub.unsubscribe()
+            print("Unsubscribed from",sub.display_name)
+        except ValueError: #This returns a weird JSON exception on a 404
+            print("Subreddit",line,"can't be found")
+        except AttributeError:
+            print("Can't unsubscribe from this")
+            
+    
+    def do_submit(self,line):
+        #TODO: What's the deal with captchas?
+        """usage: submit [link]
+    Submit a link. You will be prompted for your post's title,
+    the subreddit, and if link is ommited, for a URL or self text"""
+        title=input("Title: ")
+        default_sub=self.find_subreddit()
+        if default_sub:
+            q="Post to subreddit:   (press Enter to post to /r/"+default_sub.display_name+")\n/r/"
+        else:
+            q="Post to subreddit:\n/r/"
+        sub=input(q)
+        if not sub: sub= default_sub.display_name
+        
+        url=input("Link:   (type 'self' to make a self post)")
+        
+        if url=='self':
+            self.reddit.submit(sub, 
+                               title, 
+                               text=self.multiline_input("Enter your self text.\n When you're done, leave a blank line and press Enter")
+                               )
+        else:
+            self.reddit.submit(sub, 
+                               title,
+                               url=url
+                               )
+                    
+    
 
     def onecmd(self,command):
         try:
