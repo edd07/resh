@@ -33,6 +33,7 @@ class resh(cmd.Cmd):
     #friend command
     #document scriptable features
     #suscribe/unsuscribe commands
+    #delete
     
     def __init__(self):
         super(resh,self).__init__()
@@ -314,70 +315,43 @@ class resh(cmd.Cmd):
                 print("There was a problem sending the message")
         else:
             raise reddit.errors.LoginRequired("")
+        
+    def call_action(self,action,line,success_msg,error_msg):
+        """Calls a function of the current item or a numbered item"""
+        try:
+            if not line:
+                getattr(self.listing.reddit_object,action)()
+            else:
+                getattr(self.listing.go(int(line)), action)()
+            print(success_msg)
+        except ValueError:
+            print("Invalid argument. For help, type 'help ",action,"'",sep='')
+        except AttributeError:
+            print(error_msg)
             
     def do_upvote(self,line):
         """usage: upvote [number]
     Upvotes a comment or submission. If number isn't specified,
     the current listing is upvoted"""
-        try:
-            if not line:
-                self.listing.reddit_object.upvote()
-            else:
-                self.listing.go(int(line)).upvote()
-            
-            print("Upvoted")
-        except ValueError:
-            print("Invalid argument. For help, type 'help upvote'")
-        except AttributeError:
-            print("Can't vote on this")
+        self.call_action('upvote', line, "Upvoted", "Can't vote on this")    
             
     def do_downvote(self,line):
         """usage: downvote [number]
     Downvotes a comment or submission. If number isn't specified,
     the current listing is downvoted"""
-        try:
-            if not line:
-                self.listing.reddit_object.downvote()
-            else:
-                self.listing.go(int(line)).downvote()
-            
-            print("Downvoted")
-        except ValueError:
-            print("Invalid argument. For help, type 'help downvote'")
-        except AttributeError:
-            print("Can't vote on this")
+        self.call_action('downvote', line, "Downvoted", "Can't vote on this")
     
     def do_save(self,line):
         """usage: save [number]
     Saves a submission. If number isn't specified,
     the current submission is saved"""
-        try:
-            if not line:
-                self.listing.reddit_object.save()
-            else:
-                self.listing.go(int(line)).save()
-            
-            print("Saved")
-        except ValueError:
-            print("Invalid argument. For help, type 'help save'")
-        except AttributeError:
-            print("Can't save this")
+        self.call_action('save', line, "Saved", "Can't save this")
     
     def do_unsave(self,line):
         """usage: unsave [number]
     Un-saves a submission. If number isn't specified,
     the current submission is un-saved"""
-        try:
-            if not line:
-                self.listing.reddit_object.unsave()
-            else:
-                self.listing.go(int(line)).unsave()
-            
-            print("Unsaved")
-        except ValueError:
-            print("Invalid argument. For help, type 'help unsave'")
-        except AttributeError:
-            print("Can't unsave this")
+        self.call_action('unsave', line, "Unsaved", "Can't unsave this")
             
     def do_saved(self,line):
         """usage: saved
