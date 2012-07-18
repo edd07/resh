@@ -419,10 +419,3 @@ class Comment_Listing(Listing):
                 out.append(self.__str_Reply(i,margin+" | "))
         
         return Listing.SEPARATOR.join(out)
-        
-           
-
-
-
-
-        

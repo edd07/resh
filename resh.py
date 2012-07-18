@@ -29,8 +29,8 @@ from inspect import getmembers #for the py command
 
 class resh(cmd.Cmd):
     #TODO: 
-    #submit command
-    #friend command
+    #submit command (captcha)
+    #friend command (find_redditor)
     #useful functions for py command
     #'go'ing to a message to see the whole conversation
     #view command to see stuff inside the terminal
@@ -45,6 +45,7 @@ class resh(cmd.Cmd):
         
         #undocumented shorthand commands
         self.do_EOF=self.do_exit
+        self.do_clear=self.clear
         self.do_r=self.do_subreddit
         self.do_fp = self.do_frontpage
         self.do_u = self.do_user
@@ -391,17 +392,20 @@ class resh(cmd.Cmd):
         
         url=input("Link:   (type 'self' to make a self post)")
         
-        if url=='self':
-            self.reddit.submit(sub, 
-                               title, 
-                               text=self.multiline_input("Enter your self text.\n When you're done, leave a blank line and press Enter")
-                               )
-        else:
-            self.reddit.submit(sub, 
-                               title,
-                               url=url
-                               )
-                    
+        try:
+            if url=='self':
+                self.reddit.submit(sub, 
+                                   title, 
+                                   text=self.multiline_input("Enter your self text.\n When you're done, leave a blank line and press Enter")
+                                   )
+            else:
+                self.reddit.submit(sub, 
+                                   title,
+                                   url=url
+                                   )
+        except reddit.errors.BadCaptcha:
+            print("A captcha is required. Captchas are not yet supported by resh")
+                        
     
 
     def onecmd(self,command):
@@ -505,8 +509,8 @@ if __name__ == "__main__":
    ##                         ##    This program is free software,  
    ##                         #     see COPYING for details.
     ##     ###       ###     ##   
-     ###     #########     ###    
-       ####             ####      
+     ###     #########     ###      This program is not endorsed by
+       ####             ####        reddit.com or reddit Inc.
           ###############        
        
 Type 'frontpage' or 'subreddit <name>' to show posts
