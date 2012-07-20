@@ -20,11 +20,17 @@
 
 import cmd
 import getpass
-import reddit
-from urllib.error import URLError
-from listings import *
 import sys
 import os
+
+import reddit
+
+from urllib.error import URLError
+from mimetypes import guess_type
+
+from listings import *
+from view import *
+
 from inspect import getmembers #for the py command
 
 class resh(cmd.Cmd):
@@ -34,6 +40,7 @@ class resh(cmd.Cmd):
     #useful functions for py command
     #'go'ing to a message to see the whole conversation
     #view command to see stuff inside the terminal
+    #mod-queue listing
     
     def __init__(self):
         super(resh,self).__init__()
@@ -245,7 +252,6 @@ class resh(cmd.Cmd):
         """usage: open [number]
     Opens an item in a browser. If number is omitted,
     the current listing is opened"""
-        #TODO: Special treatment for non-html urls
         try:
             if not line:
                 obj=self.listing.reddit_object
@@ -270,6 +276,39 @@ class resh(cmd.Cmd):
             print("Invalid argument. For help, type 'help open'")
         except AttributeError:
             print("Can't open this")
+            
+    def do_view(self, line):
+        """usage: view [number]
+    View a link inside resh. If number is omitted,
+    the current listing is viewed. Not every type of file can
+    be viewed. Works best for articles on the Web."""
+        #try:
+        if not line:
+            obj=self.listing.reddit_object
+        else:
+            obj=self.listing.go(int(line))
+            
+        type=guess_type(obj.url)[0] #TODO: Fix for imgur!
+        
+        if type:
+            if type.startswith("image/"):
+                view_image(obj.url)
+            elif type=='text/html':
+                view_html(obj.url)
+            elif type.startswith("text/"):
+                view_text(obj.url)
+            else:
+                print("resh can't handle this type of file")
+        else:
+            #url doesn't have an extension, try html. This could get ugly
+            view_html(url)
+                       
+        #except ValueError:
+        #    print("Invalid argument. For help, type 'help view'")
+        #except AttributeError as e:
+        #    print("Can't view this")
+        #except Exception as e:
+        #    print("Problem viewing url:",e)   
             
     def do_inbox(self,line):
         """usage: inbox [filter]
@@ -405,8 +444,6 @@ class resh(cmd.Cmd):
                                    )
         except reddit.errors.BadCaptcha:
             print("A captcha is required. Captchas are not yet supported by resh")
-                        
-    
 
     def onecmd(self,command):
         try:

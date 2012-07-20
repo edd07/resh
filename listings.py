@@ -326,7 +326,7 @@ class Submission_Listing(Listing):
         else:
             body= "Link: {:<74}".format(submission.url)
         
-        self.content=Listing.BOLD+self._wrap(submission.title,80,"")+Listing.RESET+Listing.SEPARATOR+body
+        self.content=Listing.BOLD+self._wrap(self._asciify(submission.title),80,"")+Listing.RESET+Listing.SEPARATOR+body
         
     def str_Comment(self,comment):
         out=["{}by {:<43} {:>4} points  {:>13} ago{}".format(
