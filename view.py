@@ -41,19 +41,19 @@ else:
     SEPARATOR="\n--------------------------------------------------------------------------------\n"
     NEWLINE="\n"
 
-def asciify(self,s,strip_newlines=True):
+def asciify(s,strip_newlines=True):
     """Strip non-ascii chars from the string  because Windows is dumb"""
     return "".join(i for i in s if (ord(i)<128 and ( ord(i)!=10 if strip_newlines else True ) ))
 
 if(sys.platform!='win32'): asciify=lambda x,strip_newlines=True: x
 
-def shorten(self, s, n):
+def shorten(s, n):
     """Shortens a string to n characters, including ellipsis (...)"""
     if(len(s)<=n): return s 
     else: return s[:n-3]+"..."
 
 
-def wrap(self,string,width,margin):
+def wrap(string,width,margin):
     """Splits a string across several lines, each 80 columns wide"""
     #TODO: Make it word-wrap
     out=[]
@@ -62,7 +62,7 @@ def wrap(self,string,width,margin):
         while s:
             out.append( (margin+"{:<"+str(80-len(margin))+"}").format(s[:width]))
             s=s[width:]
-    return Listing.NEWLINE.join(out)
+    return NEWLINE.join(out)
 
 def view_image(url):
     """Converts an image to ascii-art using http://www.glassgiant.com/ascii/"""
@@ -89,7 +89,7 @@ def view_html(url):
     
     html = urlopen(url).read()
     doc=Document(html)
-    print(wrap(asciify(BOLD+doc.short_title()+RESET+"\n"+doc.markdown(),strip_newlines=False),80,''))
+    print(wrap(asciify(BOLD+doc.title()+RESET+"\n"+doc.markdown(),strip_newlines=False),80,''))
     
 def view_text(url):
     """Wraps and prints a text file"""

@@ -144,7 +144,7 @@ class Listing():
         if self.items:
             out.append("{:<80}".format("To enter an item, type 'go <number>'. For more items, type 'next'"))
         else:
-            out.append("{:<80}".format("There doesn't seem to be anything here"))
+            out.append("{:<80}".format("There doesn't seem to be anything here. To see the previous page, type 'prev'"))
 
         return Listing.SEPARATOR.join(out)
     
@@ -337,7 +337,7 @@ class Submission_Listing(Listing):
                                     Listing.RESET
                                           )]
 
-        out.append(self._wrap(comment.body,77,"   " ))
+        out.append(self._wrap(self._asciify(comment.body,strip_newlines=False),77,"   " ))
         return Listing.NEWLINE.join(out)
     
 class Comment_Listing(Listing):

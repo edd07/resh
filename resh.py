@@ -22,6 +22,7 @@ import cmd
 import getpass
 import sys
 import os
+import re
 
 import reddit
 
@@ -122,7 +123,7 @@ class resh(cmd.Cmd):
             if self.listing: 
                 self.clear()
                 print(self.listing)
-        except ValueError:
+        except (ValueError, IndexError):
             print("Invalid argument ",line)
             
     def do_next(self,line):
@@ -188,7 +189,10 @@ class resh(cmd.Cmd):
                 print("The subreddit "+line+" does not exist")
         else:
             #get subreddits
-            self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits(limit=None)))
+            if self.redditor:
+                self.load_Listing(My_Subreddits_Listing(self.redditor.my_reddits(limit=None)))
+            else:
+                raise reddit.errors.LoginRequired("")
     
     def do_frontpage(self,line):
         """usage: frontpage
@@ -245,7 +249,7 @@ class resh(cmd.Cmd):
             else:
                 print("There are no items to go to. Type 'frontpage' to see its items.")
             
-        except ValueError:
+        except (ValueError, IndexError):
             print("Invalid argument. For help, type 'help go' ")
             
     def do_open(self,line):
@@ -272,7 +276,7 @@ class resh(cmd.Cmd):
             else: #hope it's posix compliant!
                 os.system('xdg-open '+url)
                 
-        except ValueError:
+        except (ValueError, IndexError):
             print("Invalid argument. For help, type 'help open'")
         except AttributeError:
             print("Can't open this")
@@ -282,33 +286,41 @@ class resh(cmd.Cmd):
     View a link inside resh. If number is omitted,
     the current listing is viewed. Not every type of file can
     be viewed. Works best for articles on the Web."""
-        #try:
-        if not line:
-            obj=self.listing.reddit_object
-        else:
-            obj=self.listing.go(int(line))
-            
-        type=guess_type(obj.url)[0] #TODO: Fix for imgur!
-        
-        if type:
-            if type.startswith("image/"):
-                view_image(obj.url)
-            elif type=='text/html':
-                view_html(obj.url)
-            elif type.startswith("text/"):
-                view_text(obj.url)
+        try:
+            if not line:
+                obj=self.listing.reddit_object
             else:
-                print("resh can't handle this type of file")
-        else:
-            #url doesn't have an extension, try html. This could get ugly
-            view_html(url)
-                       
-        #except ValueError:
-        #    print("Invalid argument. For help, type 'help view'")
-        #except AttributeError as e:
-        #    print("Can't view this")
-        #except Exception as e:
-        #    print("Problem viewing url:",e)   
+                obj=self.listing.go(int(line))
+                
+            #Is it a imgur page? Fetch just the image
+            m = re.match(r"http://imgur\.com/(?P<num>[a-zA-Z0-9]*)", obj.url)
+            if m:
+                type="image/"
+                url="http://i.imgur.com/"+m.group('num')+".png" #HACK! imgur will serve the image even if it's not a png
+            else:
+                type=guess_type(obj.url)[0]
+                url=obj.url
+            
+            self.clear()
+            if type:
+                if type.startswith("image/"):
+                    view_image(url)
+                elif type=='text/html':
+                    view_html(url)
+                elif type.startswith("text/"):
+                    view_text(url)
+                else:
+                    view_html(url) #try readability
+            else:
+                #try readability
+                view_html(url)
+                           
+        except (ValueError, IndexError):
+            print("Invalid argument. For help, type 'help view'")
+        except AttributeError as e:
+            print("Can't view this")
+        except Exception as e:
+            print("Problem viewing url:",e)   
             
     def do_inbox(self,line):
         """usage: inbox [filter]
@@ -348,7 +360,7 @@ class resh(cmd.Cmd):
                 f=self.listing.go(int(line)).reply
             
             f(self.multiline_input("Write your reply below. When it's finished,\nleave a line blank and press Enter."))
-        except ValueError:
+        except (ValueError,IndexError):
             print("Invalid argument. For help, type 'help reply'")
         except AttributeError:
             print("Can't reply to this")
@@ -470,7 +482,7 @@ class resh(cmd.Cmd):
             else:
                 getattr(self.listing.go(int(line)), action)()
             print(success_msg)
-        except ValueError:
+        except (ValueError, IndexError):
             print("Invalid argument. For help, type 'help ",action,"'",sep='')
         except AttributeError:
             print(error_msg)
