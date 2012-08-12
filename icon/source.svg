@@ -851,9 +851,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6568542"
-     inkscape:cx="524.41428"
-     inkscape:cy="28.465739"
+     inkscape:zoom="0.5"
+     inkscape:cx="247.78318"
+     inkscape:cy="326.90762"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -1296,7 +1296,7 @@
     <rect
        inkscape:export-ydpi="90"
        inkscape:export-xdpi="90"
-       inkscape:export-filename="/home/luise/resh/icon64.png"
+       inkscape:export-filename="/home/luise/resh/icon48.png"
        y="1004.3622"
        x="489"
        height="47.999985"
@@ -1314,7 +1314,10 @@
        style="fill:url(#linearGradient3263);fill-opacity:1;stroke:#686868;stroke-width:1.00002872999999992;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;filter:url(#filter4945)" />
     <g
        id="g4819"
-       transform="matrix(0.99927478,0,0,0.99893339,0.37214069,1.0994113)">
+       transform="matrix(0.99927478,0,0,0.99893339,0.37214069,1.0994113)"
+       inkscape:export-filename="/home/luise/resh/icon48.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
       <rect
          y="1016.847"
          x="493.48538"
@@ -1344,7 +1347,7 @@
     <g
        inkscape:export-ydpi="90"
        inkscape:export-xdpi="90"
-       inkscape:export-filename="/home/luise/resh/icon64.png"
+       inkscape:export-filename="/home/luise/resh/icon48.png"
        transform="matrix(0.76402245,0,0,0.74981393,185.47158,264.18595)"
        id="g3255">
       <g
